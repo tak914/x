@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y2K Neo-Link REAL P2P v4.0 (Persistent Data)</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <style>
+        /* --- ESTILOS SISTEMA OPERATIVO RETRO (Y2K / WIN 98-ME) --- */
+        :root {
+            --bg-window: #d4d0c8;
+            --window-frame: #404040;
+            --window-light: #ffffff;
+            --title-bg-start: #000080;
+            --title-bg-end: #1084d0;
+            --text-color: #000000;
+            --input-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+            font-size: 12px;
+        }
+
+        body {
+            background: #008080; 
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .window {
+            background: var(--bg-window);
+            border-top: 2px solid var(--window-light);
+            border-left: 2px solid var(--window-light);
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 1px 1px 0 0 var(--window-frame);
+            width: 850px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 3px;
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, var(--title-bg-start), var(--title-bg-end));
+            padding: 4px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .title-bar-text {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .window-body {
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            background: var(--bg-window);
+        }
+
+        @media (max-width: 768px) {
+            .window-body { flex-direction: column; }
+            .panel-left { width: 100% !important; }
+        }
+
+        .panel-left {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .profile-box, .connect-box {
+            border: 2px inset #ffffff;
+            background: #e4e0d8;
+            padding: 8px;
+        }
+
+        .user-id-badge {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 4px;
+            border: 2px inset #808080;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 8px;
+            margin: 6px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px inset #808080;
+            width: 130px;
+            height: 130px;
+        }
+
+        .scanner-window {
+            border: 2px inset #808080;
+            background: #000;
+            position: relative;
+            margin-top: 6px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        #reader {
+            width: 100% !important;
+            border: none !important;
+        }
+        #reader #html5-qrcode-anchor-scan-type-change { display: none !important; }
+
+        .panel-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chat-display {
+            height: 380px;
+            background: var(--input-bg);
+            border: 2px inset #808080;
+            padding: 8px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 4px 6px;
+            border-radius: 3px;
+            line-height: 1.4;
+        }
+
+        .msg-system { color: #0000ff; font-style: italic; text-align: center; max-width: 100%; }
+        .msg-error { color: #ff0000; font-weight: bold; text-align: center; max-width: 100%; }
+        .msg-local { background: #e6edf2; align-self: flex-end; border: 1px solid #b0c4de; }
+        .msg-remote { background: #f0f0e6; align-self: flex-start; border: 1px solid #d2d2b4; }
+        .msg-meta { font-size: 10px; color: #555; margin-bottom: 2px; font-weight: bold; }
+
+        .media-preview { margin-top: 4px; max-width: 100%; max-height: 150px; border: 1px solid #808080; }
+        .audio-player { margin-top: 4px; width: 100%; }
+
+        .chat-input-zone { display: flex; gap: 4px; }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 4px;
+            border: 2px inset #808080;
+            background: var(--input-bg);
+            outline: none;
+        }
+
+        button.classic-btn {
+            background: var(--bg-window);
+            border-top: 2px solid var(--window-light);
+            border-left: 2px solid var(--window-light);
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button.classic-btn:active {
+            border-top: 2px solid #404040;
+            border-left: 2px solid #404040;
+            border-right: 2px solid var(--window-light);
+            border-bottom: 2px solid var(--window-light);
+        }
+
+        .media-bar { display: flex; justify-content: space-between; background: #d4d0c8; padding: 2px; border: 1px inset #808080; }
+        .media-bar-left { display: flex; gap: 6px; }
+        .media-btn { background: none; border: none; cursor: pointer; font-size: 14px; }
+        .hidden-input { display: none; }
+        .status-bar { border-top: 1px solid #808080; padding: 2px 4px; display: flex; justify-content: space-between; background: var(--bg-window); font-size: 11px; }
+        
+        /* Estilos libreta de direcciones / Alias */
+        .alias-zone {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #808080;
+            display: none; /* Se muestra solo al estar conectado */
+        }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="title-bar">
+        <div class="title-bar-text">🌐 NEO-LINK Real-P2P Pro v4.0</div>
+        <div class="title-bar-text" style="font-size:10px;">[DATOS PERSISTENTES]</div>
+    </div>
+
+    <div class="window-body">
+        <div class="panel-left">
+            <div class="profile-box">
+                <strong>Tu ID de Red Permanente:</strong>
+                <div class="user-id-badge" id="local-id">CONECTANDO...</div>
+                <div class="qr-container" id="qrcode" title="Tu código QR estático"></div>
+            </div>
+
+            <div class="connect-box">
+                <strong>Enlazar Nodo Remoto:</strong>
+                <input type="text" id="peer-id-input" placeholder="Pegá el ID o usá el escáner..." style="width: 100%; margin: 4px 0;">
+                <div style="display:flex; gap: 4px; margin-top:4px;">
+                    <button class="classic-btn" style="flex:1;" onclick="connectToPeer()">Conectar</button>
+                    <button class="classic-btn" style="flex:1;" id="btn-scan" onclick="toggleScanner()">📷 Escanear</button>
+                </div>
+
+                <div class="alias-zone" id="alias-area">
+                    <label style="font-weight: bold; display:block; margin-bottom:2px;">Asignar nombre a este ID:</label>
+                    <div style="display: flex; gap: 4px;">
+                        <input type="text" id="friend-alias-input" placeholder="Ej: Carlos Celular...">
+                        <button class="classic-btn" onclick="saveFriendAlias()">Guardar</button>
+                    </div>
+                </div>
+
+                <div class="scanner-window" id="scanner-area">
+                    <div id="reader"></div>
+                </div>
+            </div>
+
+            <div class="profile-box" style="flex:1;">
+                <strong>Estado de Sockets & Memoria:</strong>
+                <div id="peer-status-list" style="font-size:11px; line-height: 1.4; margin-top: 4px;">
+                    • Inicializando disco...
+                </div>
+                <button class="classic-btn" style="width:100%; margin-top:10px; font-size:10px; color: #800000;" onclick="clearAllData()">⚠️ Borrar Historial Total</button>
+            </div>
+        </div>
+
+        <div class="panel-right">
+            <div class="chat-display" id="chat-box">
+                </div>
+
+            <div class="media-bar">
+                <div class="media-bar-left">
+                    <button class="media-btn" title="Enviar Imagen" onclick="triggerInput('image-input')">🖼️</button>
+                    <button class="media-btn" title="Enviar Audio" onclick="triggerInput('audio-input')">🎵</button>
+                    <span style="color:#808080;">|</span>
+                    <span id="media-status" style="font-size:11px; align-self:center;">Disco listo</span>
+                </div>
+                <div>
+                    <span id="chat-target-name" style="font-weight:bold; color:#000080; padding-right:4px;">Sin sesión activa</span>
+                </div>
+                
+                <input type="file" id="image-input" class="hidden-input" accept="image/*" onchange="handleMediaShare(this, 'img')">
+                <input type="file" id="audio-input" class="hidden-input" accept="audio/*" onchange="handleMediaShare(this, 'audio')">
+            </div>
+
+            <div class="chat-input-zone">
+                <input type="text" id="message-text" placeholder="Escribe un mensaje..." onkeypress="checkEnter(event)" disabled>
+                <button class="classic-btn" id="send-btn" onclick="sendMessage()" disabled>Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div id="status-left">Cargando base de datos interna...</div>
+        <div>Almacenamiento: LocalStorage</div>
+    </div>
+</div>
+
+<script>
+    let peer = null;
+    let conn = null;
+    let myId = localStorage.getItem('y2k_p2p_my_id'); // Intentar recuperar tu ID viejo
+    let html5QrcodeScanner = null;
+    let currentActivePeerId = null; // ID del nodo con el que hablas ahora
+
+    // --- CARGAR HISTORIAL AL INICIAR ---
+    window.onload = function() {
+        loadHistoryFromStorage();
+        initPeer();
+    };
+
+    // Inicializar Red PeerJS (Con ID estático si ya existía)
+    function initPeer() {
+        // Si ya teníamos un ID guardado, se lo pedimos formalmente al servidor de PeerJS
+        peer = myId ? new Peer(myId, { debug: 1 }) : new Peer({ debug: 1 });
+
+        peer.on('open', function(id) {
+            myId = id;
+            localStorage.setItem('y2k_p2p_my_id', id); // Guardar para siempre
+            document.getElementById('local-id').innerText = id;
+            document.getElementById('status-left').innerText = "Tu ID estático está listo en la red.";
+            updateStatusUI();
+
+            // Renderizar el código QR permanente
+            document.getElementById('qrcode').innerHTML = ""; 
+            new QRCode(document.getElementById("qrcode"), {
+                text: id,
+                width: 114,
+                height: 114,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        });
+
+        // Escuchar llamadas entrantes de amigos
+        peer.on('connection', function(connection) {
+            if (conn) conn.close();
+            conn = connection;
+            currentActivePeerId = conn.peer;
+            setupConnectionEvents();
+        });
+
+        peer.on('error', function(err) {
+            if (err.type === 'id-taken') {
+                // Si por alguna razón el ID guardado está ocupado temporalmente en el servidor
+                appendErrorMessage("Tu ID guardado está en uso. Re-generando ID nuevo...");
+                localStorage.removeItem('y2k_p2p_my_id');
+                myId = null;
+                initPeer();
+            } else {
+                appendErrorMessage("Falla de red: " + err.type);
+            }
+        });
+    }
+
+    // Al conectarse a otro par (Manual o QR)
+    function connectToPeer(targetId) {
+        const idToConnect = targetId || document.getElementById('peer-id-input').value.trim();
+
+        if (!idToConnect) return alert("Ingresa un ID válido.");
+        if (idToConnect === myId) return alert("No podés autoconectarte.");
+
+        appendSystemMessage(`Lanzando handshake hacia nodo remoto...`);
+        conn = peer.connect(idToConnect);
+        currentActivePeerId = idToConnect;
+        setupConnectionEvents();
+    }
+
+    // Configurar canal WebRTC activo
+    function setupConnectionEvents() {
+        conn.on('open', function() {
+            currentActivePeerId = conn.peer; // Asegurar sincronía
+            
+            // Mostrar la caja para renombrar al amigo
+            document.getElementById('alias-area').style.display = 'block';
+            
+            // Cargar si ya tenía un alias guardado previo
+            const savedAlias = localStorage.getItem('alias_' + currentActivePeerId);
+            document.getElementById('friend-alias-input').value = savedAlias || "";
+
+            appendSystemMessage(`¡Enlace directo P2P abierto con éxito!`);
+            updateStatusUI();
+            
+            document.getElementById('message-text').disabled = false;
+            document.getElementById('send-btn').disabled = false;
+            stopScanner();
+        });
+
+        // Recepción de datos en tiempo real
+        conn.on('data', function(data) {
+            const senderName = getFriendName(conn.peer);
+            if (data.type === 'text') {
+                appendMessage(senderName, data.content, 'msg-remote');
+                saveMessageToStorage(conn.peer, senderName, data.content, 'msg-remote');
+            } else if (data.type === 'media') {
+                appendMediaMessage(senderName, data.content, data.mediaType, 'msg-remote');
+                saveMessageToStorage(conn.peer, senderName, data.content, 'msg-remote', data.mediaType);
+            }
+        });
+
+        conn.on('close', function() {
+            appendSystemMessage("La sesión de red activa ha finalizado.");
+            document.getElementById('message-text').disabled = true;
+            document.getElementById('send-btn').disabled = true;
+            document.getElementById('alias-area').style.display = 'none';
+            updateStatusUI();
+        });
+    }
+
+    // --- MANEJO DE NOMBRES / ALIAS DE AMIGOS ---
+    function saveFriendAlias() {
+        const aliasInput = document.getElementById('friend-alias-input').value.trim();
+        if (!currentActivePeerId) return;
+
+        if (aliasInput) {
+            localStorage.setItem('alias_' + currentActivePeerId, aliasInput);
+            appendSystemMessage(`Alias actualizado: El ID ahora se llama "${aliasInput}"`);
+        } else {
+            localStorage.removeItem('alias_' + currentActivePeerId);
+            appendSystemMessage("Alias eliminado. Se mostrará el ID nativo.");
+        }
+        updateStatusUI();
+        // Recargar el contenedor visual del chat para refrescar nombres viejos por el nuevo alias
+        loadHistoryFromStorage();
+    }
+
+    function getFriendName(id) {
+        if (!id) return "Desconocido";
+        const alias = localStorage.getItem('alias_' + id);
+        return alias ? alias : `ID: ${id.substring(0,8)}...`;
+    }
+
+    // --- LÓGICA DE ALMACENAMIENTO DE MENSAJES (PERSISTENCIA) ---
+    function saveMessageToStorage(peerId, senderLabel, content, className, mediaType = null) {
+        // Buscamos el historial existente en LocalStorage o creamos uno vacío
+        let history = JSON.parse(localStorage.getItem('y2k_chat_history')) || [];
+        
+        const newMsg = {
+            peerId: peerId, // Agrupador de la conversación
+            sender: senderLabel,
+            content: content,
+            className: className,
+            mediaType: mediaType,
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        };
+
+        history.push(newMsg);
+        localStorage.setItem('y2k_chat_history', JSON.stringify(history));
+    }
+
+    function loadHistoryFromStorage() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = '<div class="msg msg-system">*** Historial cargado desde el almacenamiento local. ***</div>';
+        
+        const history = JSON.parse(localStorage.getItem('y2k_chat_history')) || [];
+        
+        history.forEach(msg => {
+            // Actualizar el nombre en tiempo real por si cambió el alias recientemente
+            let currentSenderName = msg.sender;
+            if (msg.className === 'msg-remote') {
+                currentSenderName = getFriendName(msg.peerId);
+            }
+
+            if (msg.mediaType) {
+                renderMediaDOM(currentSenderName, msg.content, msg.mediaType, msg.className, msg.time);
+            } else {
+                renderTextDOM(currentSenderName, msg.content, msg.className, msg.time);
+            }
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function clearAllData() {
+        if (confirm("¿Estás completamente seguro de borrar todos los mensajes y aliases del disco local? Tu ID se mantendrá.")) {
+            localStorage.removeItem('y2k_chat_history');
+            // Borrar aliases
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('alias_')) localStorage.removeItem(key);
+            });
+            loadHistoryFromStorage();
+            appendSystemMessage("Memoria limpia.");
+        }
+    }
+
+    // --- ENVIAR DATOS ---
+    function sendMessage() {
+        const textInput = document.getElementById('message-text');
+        const text = textInput.value.trim();
+        if (!text || !conn) return;
+
+        conn.send({ type: 'text', content: text });
+        
+        appendMessage('Tú', text, 'msg-local');
+        saveMessageToStorage(currentActivePeerId, 'Tú', text, 'msg-local');
+        
+        textInput.value = '';
+    }
+
+    function handleMediaShare(input, mediaType) {
+        const file = input.files[0];
+        if (!file || !conn) return;
+
+        if (file.size > 1.5 * 1024 * 1024) { 
+            alert("El archivo supera 1.5MB (Límite del búfer del navegador).");
+            return;
+        }
+
+        const reader = new FileReader();
+        document.getElementById('media-status').innerText = "Escribiendo en canal...";
+
+        reader.onload = function(e) {
+            const base64Data = e.target.result;
+            conn.send({ type: 'media', mediaType: mediaType, content: base64Data });
+            
+            appendMediaMessage('Tú', base64Data, mediaType, 'msg-local');
+            saveMessageToStorage(currentActivePeerId, 'Tú', base64Data, 'msg-local', mediaType);
+            
+            document.getElementById('media-status').innerText = "Guardado/Enviado";
+        };
+
+        reader.readAsDataURL(file);
+        input.value = '';
+    }
+
+    // --- CONTROLADORES DE INTERFAZ GRÁFICA (DOM) ---
+    function updateStatusUI() {
+        const statusList = document.getElementById('peer-status-list');
+        const targetLabel = document.getElementById('chat-target-name');
+
+        if (conn && conn.open) {
+            const name = getFriendName(currentActivePeerId);
+            document.getElementById('status-left').innerText = `Sesión activa con: ${name}`;
+            targetLabel.innerText = `Charlando con: ${name}`;
+            statusList.innerHTML = `
+                • Red P2P: <span style="color:green;font-weight:bold;">EN LÍNEA</span><br>
+                • Amigo: ${name}<br>
+                • IndexDB: Registrado
+            `;
+        } else {
+            document.getElementById('status-left').innerText = "Esperando enlace...";
+            targetLabel.innerText = "Sin sesión activa";
+            statusList.innerHTML = `
+                • Servidor P2P: <span style="color:green;font-weight:bold;">LISTO</span><br>
+                • Estado: Escuchando red...<br>
+                • Persistencia: Habilitada
+            `;
+        }
+    }
+
+    function appendMessage(sender, text, className) {
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        renderTextDOM(sender, text, className, time);
+    }
+
+    function renderTextDOM(sender, text, className, time) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${className}`;
+        msgDiv.innerHTML = `<div class="msg-meta">${sender} [${time}]:</div><div>${escapeHTML(text)}</div>`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendMediaMessage(sender, src, mediaType, className) {
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        renderMediaDOM(sender, src, mediaType, className, time);
+    }
+
+    function renderMediaDOM(sender, src, mediaType, className, time) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${className}`;
+        let mediaHTML = mediaType === 'img' ? `<img src="${src}" class="media-preview">` : `<audio controls src="${src}" class="audio-player"></audio>`;
+        msgDiv.innerHTML = `<div class="msg-meta">${sender} [${time}]:</div>${mediaHTML}`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendSystemMessage(text) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = "msg msg-system";
+        msgDiv.innerText = `*** ${text} ***`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendErrorMessage(text) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = "msg msg-error";
+        msgDiv.innerText = `[Error] ${text}`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // --- ESCÁNER QR ---
+    function toggleScanner() {
+        const area = document.getElementById('scanner-area');
+        const btn = document.getElementById('btn-scan');
+        if (area.style.display === 'block') { stopScanner(); } else {
+            area.style.display = 'block';
+            btn.innerText = "🛑 Parar";
+            btn.style.color = "red";
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 180, height: 180 } }, 
+                (text) => { document.getElementById('peer-id-input').value = text; stopScanner(); connectToPeer(text); }, () => {}
+            ).catch(err => { appendErrorMessage("Error cámara: " + err); stopScanner(); });
+        }
+    }
+
+    function stopScanner() {
+        const area = document.getElementById('scanner-area');
+        const btn = document.getElementById('btn-scan');
+        area.style.display = 'none'; btn.innerText = "📷 Escanear"; btn.style.color = "";
+        if (html5QrcodeScanner) { html5QrcodeScanner.stop().then(() => html5QrcodeScanner = null).catch(() => {}); }
+    }
+
+    function triggerInput(id) { if (!conn) return alert("Conéctate primero."); document.getElementById(id).click(); }
+    function checkEnter(event) { if (event.key === 'Enter') sendMessage(); }
+    function escapeHTML(str) { return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
+</script>
+</body>
+</html>
