@@ -1,613 +1,1561 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y2K Neo-Link REAL P2P v4.0 (Persistent Data)</title>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    
-    <style>
-        /* --- ESTILOS SISTEMA OPERATIVO RETRO (Y2K / WIN 98-ME) --- */
-        :root {
-            --bg-window: #d4d0c8;
-            --window-frame: #404040;
-            --window-light: #ffffff;
-            --title-bg-start: #000080;
-            --title-bg-end: #1084d0;
-            --text-color: #000000;
-            --input-bg: #ffffff;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
-            font-size: 12px;
-        }
-
-        body {
-            background: #008080; 
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .window {
-            background: var(--bg-window);
-            border-top: 2px solid var(--window-light);
-            border-left: 2px solid var(--window-light);
-            border-right: 2px solid #404040;
-            border-bottom: 2px solid #404040;
-            box-shadow: 1px 1px 0 0 var(--window-frame);
-            width: 850px;
-            max-width: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 3px;
-        }
-
-        .title-bar {
-            background: linear-gradient(90deg, var(--title-bg-start), var(--title-bg-end));
-            padding: 4px 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .title-bar-text {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .window-body {
-            display: flex;
-            gap: 6px;
-            padding: 6px;
-            background: var(--bg-window);
-        }
-
-        @media (max-width: 768px) {
-            .window-body { flex-direction: column; }
-            .panel-left { width: 100% !important; }
-        }
-
-        .panel-left {
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .profile-box, .connect-box {
-            border: 2px inset #ffffff;
-            background: #e4e0d8;
-            padding: 8px;
-        }
-
-        .user-id-badge {
-            background: #000;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            padding: 6px;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 4px;
-            border: 2px inset #808080;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        .qr-container {
-            background: white;
-            padding: 8px;
-            margin: 6px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px inset #808080;
-            width: 130px;
-            height: 130px;
-        }
-
-        .scanner-window {
-            border: 2px inset #808080;
-            background: #000;
-            position: relative;
-            margin-top: 6px;
-            overflow: hidden;
-            display: none;
-        }
-        
-        #reader {
-            width: 100% !important;
-            border: none !important;
-        }
-        #reader #html5-qrcode-anchor-scan-type-change { display: none !important; }
-
-        .panel-right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .chat-display {
-            height: 380px;
-            background: var(--input-bg);
-            border: 2px inset #808080;
-            padding: 8px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 4px 6px;
-            border-radius: 3px;
-            line-height: 1.4;
-        }
-
-        .msg-system { color: #0000ff; font-style: italic; text-align: center; max-width: 100%; }
-        .msg-error { color: #ff0000; font-weight: bold; text-align: center; max-width: 100%; }
-        .msg-local { background: #e6edf2; align-self: flex-end; border: 1px solid #b0c4de; }
-        .msg-remote { background: #f0f0e6; align-self: flex-start; border: 1px solid #d2d2b4; }
-        .msg-meta { font-size: 10px; color: #555; margin-bottom: 2px; font-weight: bold; }
-
-        .media-preview { margin-top: 4px; max-width: 100%; max-height: 150px; border: 1px solid #808080; }
-        .audio-player { margin-top: 4px; width: 100%; }
-
-        .chat-input-zone { display: flex; gap: 4px; }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 4px;
-            border: 2px inset #808080;
-            background: var(--input-bg);
-            outline: none;
-        }
-
-        button.classic-btn {
-            background: var(--bg-window);
-            border-top: 2px solid var(--window-light);
-            border-left: 2px solid var(--window-light);
-            border-right: 2px solid #404040;
-            border-bottom: 2px solid #404040;
-            padding: 4px 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button.classic-btn:active {
-            border-top: 2px solid #404040;
-            border-left: 2px solid #404040;
-            border-right: 2px solid var(--window-light);
-            border-bottom: 2px solid var(--window-light);
-        }
-
-        .media-bar { display: flex; justify-content: space-between; background: #d4d0c8; padding: 2px; border: 1px inset #808080; }
-        .media-bar-left { display: flex; gap: 6px; }
-        .media-btn { background: none; border: none; cursor: pointer; font-size: 14px; }
-        .hidden-input { display: none; }
-        .status-bar { border-top: 1px solid #808080; padding: 2px 4px; display: flex; justify-content: space-between; background: var(--bg-window); font-size: 11px; }
-        
-        /* Estilos libreta de direcciones / Alias */
-        .alias-zone {
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px dashed #808080;
-            display: none; /* Se muestra solo al estar conectado */
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Golf Procedural Multijugador</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+  #gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 100;
+    border-bottom: 2px solid rgba(255,255,255,0.15);
+  }
+  .hud-section {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+  .hud-item {
+    text-align: center;
+    color: white;
+  }
+  .hud-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.55);
+  }
+  .hud-value {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    color: #fff;
+  }
+  .hud-value.highlight { color: #7eff47; }
+  .player-indicator {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.3s;
+  }
+  .p1-color { background: rgba(255,80,80,0.3); border: 2px solid #ff5050; color: #ff8888; }
+  .p2-color { background: rgba(80,150,255,0.3); border: 2px solid #5096ff; color: #88bbff; }
+  .p1-color.active { background: rgba(255,80,80,0.7); color: #fff; box-shadow: 0 0 12px #ff5050; }
+  .p2-color.active { background: rgba(80,150,255,0.7); color: #fff; box-shadow: 0 0 12px #5096ff; }
+  #scoreCard {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .score-cell {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+  }
+  .score-cell.p1 { background: rgba(255,80,80,0.5); color: #ffaaaa; }
+  .score-cell.p2 { background: rgba(80,150,255,0.5); color: #aaccff; }
+  .score-cell.birdie { background: #ffd700; color: #000; }
+  .score-cell.eagle { background: #ff6600; color: #fff; }
+  .score-cell.bogey { background: #888; color: #fff; }
+  .score-cell.double-bogey { background: #ff3333; color: #fff; }
+  canvas { display: block; cursor: crosshair; width: 100vw; height: 100vh; }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(4px);
+  }
+  #overlay.hidden { display: none; }
+  .overlay-box {
+    background: linear-gradient(135deg, #1e3a2f, #0d2218);
+    border: 2px solid rgba(126,255,71,0.4);
+    border-radius: 20px;
+    padding: 36px 44px;
+    text-align: center;
+    color: white;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(126,255,71,0.1);
+  }
+  .overlay-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #7eff47;
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px rgba(126,255,71,0.5);
+    letter-spacing: -1px;
+  }
+  .overlay-subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 24px;
+  }
+  .seed-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .seed-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(126,255,71,0.3);
+    border-radius: 10px;
+    color: #7eff47;
+    font-size: 15px;
+    padding: 10px 14px;
+    outline: none;
+    font-family: monospace;
+  }
+  .seed-row input::placeholder { color: rgba(126,255,71,0.35); }
+  .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #7eff47, #3dcc00);
+    color: #0a1f00;
+    width: 100%;
+    font-size: 17px;
+    padding: 14px;
+    box-shadow: 0 4px 20px rgba(126,255,71,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(126,255,71,0.6); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-top: 10px;
+    width: 100%;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.14); }
+  #netDebug {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: rgba(255,255,255,0.5);
+    font-size: 10px;
+    font-family: monospace;
+    padding: 6px 10px;
+    border-radius: 6px;
+    max-width: 340px;
+    z-index: 150;
+    word-break: break-all;
+  }
+  #message {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: #7eff47;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 10px 24px;
+    border-radius: 30px;
+    z-index: 150;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    border: 1px solid rgba(126,255,71,0.4);
+    white-space: nowrap;
+  }
+  #message.hidden { opacity: 0; }
+  #powerBar {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 12px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 150;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  #powerFill {
+    height: 100%;
+    width: 0%;
+    border-radius: 6px;
+    transition: background 0.1s;
+  }
+</style>
 </head>
 <body>
+<div id="gameContainer">
+  <div id="hud">
+    <div class="hud-section">
+      <div class="hud-item">
+        <div class="hud-label">Hoyo</div>
+        <div class="hud-value highlight" id="hudHole">1/9</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Par</div>
+        <div class="hud-value" id="hudPar">3</div>
+      </div>
+    </div>
+    <div class="hud-section">
+      <div class="player-indicator p1-color" id="p1ind">🔴 J1: <span id="p1shots">0</span></div>
+      <div class="player-indicator p2-color" id="p2ind">🔵 J2: <span id="p2shots">0</span></div>
+    </div>
+    <div class="hud-section">
+      <div id="scoreCard"></div>
+    </div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="powerBar"><div id="powerFill"></div></div>
+  <div id="message" class="hidden"></div>
+  <div id="netDebug">🌐 Sin conexión</div>
+  <div id="overlay">
 
-<div class="window">
-    <div class="title-bar">
-        <div class="title-bar-text">🌐 NEO-LINK Real-P2P Pro v4.0</div>
-        <div class="title-bar-text" style="font-size:10px;">[DATOS PERSISTENTES]</div>
+    <!-- PANTALLA 1: Menú principal -->
+    <div class="overlay-box" id="screenMenu">
+      <div class="overlay-title">⛳ MINI GOLF</div>
+      <div class="overlay-subtitle">Procedural Multijugador — 9 Hoyos</div>
+      <button class="btn btn-primary" style="margin-bottom:10px" onclick="showScreen('screenHost')">🏠 Crear Partida</button>
+      <button class="btn btn-primary" style="margin-bottom:10px;background:linear-gradient(135deg,#5096ff,#1a4acc);box-shadow:0 4px 20px rgba(80,150,255,0.4)" onclick="showScreen('screenJoin')">🔗 Unirse a Partida</button>
+      <button class="btn btn-secondary" onclick="startLocalGame(true)">🤖 Modo Demo (IA)</button>
+      <div style="margin-top:18px;font-size:11px;color:rgba(255,255,255,0.35);">
+        Arrastra desde la pelota para apuntar y soltar para golpear.
+      </div>
     </div>
 
-    <div class="window-body">
-        <div class="panel-left">
-            <div class="profile-box">
-                <strong>Tu ID de Red Permanente:</strong>
-                <div class="user-id-badge" id="local-id">CONECTANDO...</div>
-                <div class="qr-container" id="qrcode" title="Tu código QR estático"></div>
-            </div>
-
-            <div class="connect-box">
-                <strong>Enlazar Nodo Remoto:</strong>
-                <input type="text" id="peer-id-input" placeholder="Pegá el ID o usá el escáner..." style="width: 100%; margin: 4px 0;">
-                <div style="display:flex; gap: 4px; margin-top:4px;">
-                    <button class="classic-btn" style="flex:1;" onclick="connectToPeer()">Conectar</button>
-                    <button class="classic-btn" style="flex:1;" id="btn-scan" onclick="toggleScanner()">📷 Escanear</button>
-                </div>
-
-                <div class="alias-zone" id="alias-area">
-                    <label style="font-weight: bold; display:block; margin-bottom:2px;">Asignar nombre a este ID:</label>
-                    <div style="display: flex; gap: 4px;">
-                        <input type="text" id="friend-alias-input" placeholder="Ej: Carlos Celular...">
-                        <button class="classic-btn" onclick="saveFriendAlias()">Guardar</button>
-                    </div>
-                </div>
-
-                <div class="scanner-window" id="scanner-area">
-                    <div id="reader"></div>
-                </div>
-            </div>
-
-            <div class="profile-box" style="flex:1;">
-                <strong>Estado de Sockets & Memoria:</strong>
-                <div id="peer-status-list" style="font-size:11px; line-height: 1.4; margin-top: 4px;">
-                    • Inicializando disco...
-                </div>
-                <button class="classic-btn" style="width:100%; margin-top:10px; font-size:10px; color: #800000;" onclick="clearAllData()">⚠️ Borrar Historial Total</button>
-            </div>
-        </div>
-
-        <div class="panel-right">
-            <div class="chat-display" id="chat-box">
-                </div>
-
-            <div class="media-bar">
-                <div class="media-bar-left">
-                    <button class="media-btn" title="Enviar Imagen" onclick="triggerInput('image-input')">🖼️</button>
-                    <button class="media-btn" title="Enviar Audio" onclick="triggerInput('audio-input')">🎵</button>
-                    <span style="color:#808080;">|</span>
-                    <span id="media-status" style="font-size:11px; align-self:center;">Disco listo</span>
-                </div>
-                <div>
-                    <span id="chat-target-name" style="font-weight:bold; color:#000080; padding-right:4px;">Sin sesión activa</span>
-                </div>
-                
-                <input type="file" id="image-input" class="hidden-input" accept="image/*" onchange="handleMediaShare(this, 'img')">
-                <input type="file" id="audio-input" class="hidden-input" accept="audio/*" onchange="handleMediaShare(this, 'audio')">
-            </div>
-
-            <div class="chat-input-zone">
-                <input type="text" id="message-text" placeholder="Escribe un mensaje..." onkeypress="checkEnter(event)" disabled>
-                <button class="classic-btn" id="send-btn" onclick="sendMessage()" disabled>Enviar</button>
-            </div>
-        </div>
+    <!-- PANTALLA 2: Crear sala (Host = J1) -->
+    <div class="overlay-box hidden" id="screenHost">
+      <div class="overlay-title">🏠 Crear Partida</div>
+      <div class="overlay-subtitle">Eres el <strong style="color:#ff8888">Jugador 1 🔴</strong></div>
+      <div class="seed-row">
+        <input type="text" id="seedInput" placeholder="Semilla (ej: 42069)" maxlength="20"/>
+        <button class="btn btn-secondary" style="width:auto;margin:0" onclick="randomSeed()">🎲</button>
+      </div>
+      <button class="btn btn-primary" onclick="hostGame()" id="btnHost">📡 Generar código de sala</button>
+      <div id="hostStatus" style="margin-top:16px;min-height:80px;display:flex;flex-direction:column;align-items:center;gap:10px"></div>
+      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu')">← Volver</button>
     </div>
 
-    <div class="status-bar">
-        <div id="status-left">Cargando base de datos interna...</div>
-        <div>Almacenamiento: LocalStorage</div>
+    <!-- PANTALLA 3: Unirse (Guest = J2) -->
+    <div class="overlay-box hidden" id="screenJoin">
+      <div class="overlay-title">🔗 Unirse</div>
+      <div class="overlay-subtitle">Eres el <strong style="color:#88bbff">Jugador 2 🔵</strong></div>
+      <div class="seed-row">
+        <input type="text" id="joinCodeInput" placeholder="Pega aquí el ID del host" maxlength="36" style="font-size:13px;letter-spacing:1px;text-align:center;font-family:monospace"/>
+      </div>
+      <button class="btn btn-primary" onclick="joinGame()" id="btnJoin">🔌 Conectar</button>
+      <div id="joinStatus" style="margin-top:16px;min-height:60px;display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,0.7);font-size:13px"></div>
+      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu')">← Volver</button>
     </div>
+
+  </div>
 </div>
 
 <script>
-    let peer = null;
-    let conn = null;
-    let myId = localStorage.getItem('y2k_p2p_my_id'); // Intentar recuperar tu ID viejo
-    let html5QrcodeScanner = null;
-    let currentActivePeerId = null; // ID del nodo con el que hablas ahora
+// ═══════════════════════════════════════════════════════
+//  UTILIDADES & PRNG (Pseudo-Random con Semilla)
+// ═══════════════════════════════════════════════════════
+class SeededRandom {
+  constructor(seed) {
+    this.seed = seed >>> 0;
+  }
+  next() {
+    this.seed = (Math.imul(this.seed ^ (this.seed >>> 16), 0x45d9f3b) >>> 0);
+    this.seed = (Math.imul(this.seed ^ (this.seed >>> 16), 0x45d9f3b) >>> 0);
+    this.seed ^= this.seed >>> 16;
+    return (this.seed >>> 0) / 4294967296;
+  }
+  range(a, b) { return a + this.next() * (b - a); }
+  int(a, b) { return Math.floor(this.range(a, b + 1)); }
+  pick(arr) { return arr[Math.floor(this.next() * arr.length)]; }
+}
 
-    // --- CARGAR HISTORIAL AL INICIAR ---
-    window.onload = function() {
-        loadHistoryFromStorage();
-        initPeer();
-    };
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0;
+  return h;
+}
 
-    // Inicializar Red PeerJS (Con ID estático si ya existía)
-    function initPeer() {
-        // Si ya teníamos un ID guardado, se lo pedimos formalmente al servidor de PeerJS
-        peer = myId ? new Peer(myId, { debug: 1 }) : new Peer({ debug: 1 });
+// ═══════════════════════════════════════════════════════
+//  CONSTANTES GLOBALES
+// ═══════════════════════════════════════════════════════
+const TILE = 40;
+const COLS = 24, ROWS = 18;
+const BALL_R = 7;
+const HOLE_R = 10;
+const BUMPER_R = 14;
+const MAX_POWER = 18;
+const FRICTION_GRASS = 0.985;
+const FRICTION_SAND = 0.94;
+const ELASTICITY = 0.65;
+const BUMPER_ELASTICITY = 1.4;
+const WATER_CHECK_INTERVAL = 200;
 
-        peer.on('open', function(id) {
-            myId = id;
-            localStorage.setItem('y2k_p2p_my_id', id); // Guardar para siempre
-            document.getElementById('local-id').innerText = id;
-            document.getElementById('status-left').innerText = "Tu ID estático está listo en la red.";
-            updateStatusUI();
+// ═══════════════════════════════════════════════════════
+//  GENERADOR DE MAPAS PROCEDUALES
+// ═══════════════════════════════════════════════════════
+function generateHole(holeNum, rng) {
+  const difficulty = (holeNum - 1) / 8; // 0..1
+  const grid = [];
+  for (let r = 0; r < ROWS; r++) {
+    grid.push([]);
+    for (let c = 0; c < COLS; c++) grid[r].push('W'); // Wall por defecto
+  }
 
-            // Renderizar el código QR permanente
-            document.getElementById('qrcode').innerHTML = ""; 
-            new QRCode(document.getElementById("qrcode"), {
-                text: id,
-                width: 114,
-                height: 114,
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        });
+  // Generar camino procedural
+  const segments = [];
+  let cx = 2, cy = Math.floor(ROWS / 2);
+  const visited = new Set();
+  let dir = 0; // 0=right,1=down,2=left,3=up
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+  const cardinals = [[1,0],[0,1],[0,-1]];
 
-        // Escuchar llamadas entrantes de amigos
-        peer.on('connection', function(connection) {
-            if (conn) conn.close();
-            conn = connection;
-            currentActivePeerId = conn.peer;
-            setupConnectionEvents();
-        });
+  // Punto de inicio
+  const startX = cx, startY = cy;
+  const pathLength = 8 + Math.floor(difficulty * 14) + rng.int(0, 4);
 
-        peer.on('error', function(err) {
-            if (err.type === 'id-taken') {
-                // Si por alguna razón el ID guardado está ocupado temporalmente en el servidor
-                appendErrorMessage("Tu ID guardado está en uso. Re-generando ID nuevo...");
-                localStorage.removeItem('y2k_p2p_my_id');
-                myId = null;
-                initPeer();
-            } else {
-                appendErrorMessage("Falla de red: " + err.type);
+  // Caminata aleatoria sesgada hacia adelante
+  let steps = 0;
+  const path = [{x: cx, y: cy}];
+  visited.add(`${cx},${cy}`);
+
+  while (steps < pathLength) {
+    const choices = [];
+    // Preferir avanzar hacia la derecha
+    if (cx + 1 < COLS - 2) choices.push({dx:1,dy:0,w:5});
+    if (cy + 1 < ROWS - 2 && cy + 1 > 1) choices.push({dx:0,dy:1,w:2});
+    if (cy - 1 > 1 && cy - 1 < ROWS - 2) choices.push({dx:0,dy:-1,w:2});
+
+    const valid = choices.filter(c => !visited.has(`${cx+c.dx},${cy+c.dy}`));
+    if (valid.length === 0) break;
+    const total = valid.reduce((s, c) => s + c.w, 0);
+    let r = rng.next() * total;
+    let chosen = valid[0];
+    for (const c of valid) { r -= c.w; if (r <= 0) { chosen = c; break; } }
+
+    cx += chosen.dx; cy += chosen.dy;
+    visited.add(`${cx},${cy}`);
+    path.push({x: cx, y: cy});
+    steps++;
+  }
+
+  const endX = cx, endY = cy;
+
+  // Hacer camino más ancho (ancho = 2-3 tiles)
+  const width = 2 + (difficulty < 0.3 ? 1 : 0);
+  const fairwaySet = new Set();
+  for (const p of path) {
+    for (let dr = -width; dr <= width; dr++) {
+      for (let dc = -width; dc <= width; dc++) {
+        const nr = p.y + dr, nc = p.x + dc;
+        if (nr > 0 && nr < ROWS-1 && nc > 0 && nc < COLS-1) {
+          fairwaySet.add(`${nr},${nc}`);
+        }
+      }
+    }
+  }
+
+  // Aplicar al grid
+  for (const key of fairwaySet) {
+    const [r, c] = key.split(',').map(Number);
+    grid[r][c] = 'G'; // Grass
+  }
+
+  // Obstáculos internos (paredes)
+  if (difficulty > 0.2) {
+    const numWalls = Math.floor(difficulty * 4) + rng.int(0, 2);
+    for (let i = 0; i < numWalls; i++) {
+      if (path.length < 3) break;
+      const seg = path[rng.int(1, Math.max(1, path.length - 2))];
+      const horiz = rng.next() > 0.5;
+      const len = rng.int(1, 2);
+      for (let j = -len; j <= len; j++) {
+        const wr = seg.y + (horiz ? 0 : j);
+        const wc = seg.x + (horiz ? j : 0);
+        if (wr > 1 && wr < ROWS-2 && wc > 1 && wc < COLS-2 && !(`${wr},${wc}` === `${startY},${startX}`) && !(`${wr},${wc}` === `${endY},${endX}`)) {
+          grid[wr][wc] = 'W';
+        }
+      }
+    }
+  }
+
+  // Trampas de agua
+  const waterZones = [];
+  let numWater = 0;
+  if (difficulty > 0.15) {
+    numWater = Math.floor(difficulty * 3) + (rng.next() > 0.6 ? 1 : 0);
+    for (let i = 0; i < numWater; i++) {
+      if (path.length < 4) break;
+      const seg = path[rng.int(2, Math.max(2, path.length - 3))];
+      // Asegurarse que no esté en start/end
+      if (Math.abs(seg.x - startX) > 2 && Math.abs(seg.x - endX) > 2) {
+        const wr = seg.y + rng.int(-1, 0), wc = seg.x + rng.int(-1, 0);
+        const ww = rng.int(1, 2), wh = rng.int(1, 2);
+        waterZones.push({r: wr, c: wc, w: ww, h: wh});
+        for (let dr = 0; dr <= wh; dr++) {
+          for (let dc = 0; dc <= ww; dc++) {
+            const r2 = wr+dr, c2 = wc+dc;
+            if (r2 > 1 && r2 < ROWS-2 && c2 > 1 && c2 < COLS-2) {
+              grid[r2][c2] = 'L'; // Water (Lake)
             }
-        });
+          }
+        }
+      }
     }
+  }
 
-    // Al conectarse a otro par (Manual o QR)
-    function connectToPeer(targetId) {
-        const idToConnect = targetId || document.getElementById('peer-id-input').value.trim();
-
-        if (!idToConnect) return alert("Ingresa un ID válido.");
-        if (idToConnect === myId) return alert("No podés autoconectarte.");
-
-        appendSystemMessage(`Lanzando handshake hacia nodo remoto...`);
-        conn = peer.connect(idToConnect);
-        currentActivePeerId = idToConnect;
-        setupConnectionEvents();
-    }
-
-    // Configurar canal WebRTC activo
-    function setupConnectionEvents() {
-        conn.on('open', function() {
-            currentActivePeerId = conn.peer; // Asegurar sincronía
-            
-            // Mostrar la caja para renombrar al amigo
-            document.getElementById('alias-area').style.display = 'block';
-            
-            // Cargar si ya tenía un alias guardado previo
-            const savedAlias = localStorage.getItem('alias_' + currentActivePeerId);
-            document.getElementById('friend-alias-input').value = savedAlias || "";
-
-            appendSystemMessage(`¡Enlace directo P2P abierto con éxito!`);
-            updateStatusUI();
-            
-            document.getElementById('message-text').disabled = false;
-            document.getElementById('send-btn').disabled = false;
-            stopScanner();
-        });
-
-        // Recepción de datos en tiempo real
-        conn.on('data', function(data) {
-            const senderName = getFriendName(conn.peer);
-            if (data.type === 'text') {
-                appendMessage(senderName, data.content, 'msg-remote');
-                saveMessageToStorage(conn.peer, senderName, data.content, 'msg-remote');
-            } else if (data.type === 'media') {
-                appendMediaMessage(senderName, data.content, data.mediaType, 'msg-remote');
-                saveMessageToStorage(conn.peer, senderName, data.content, 'msg-remote', data.mediaType);
+  // Arena
+  const sandZones = [];
+  if (difficulty > 0.1) {
+    const numSand = rng.int(0, Math.floor(difficulty * 3) + 1);
+    for (let i = 0; i < numSand; i++) {
+      if (path.length < 3) break;
+      const seg = path[rng.int(1, Math.max(1, path.length - 2))];
+      if (Math.abs(seg.x - startX) > 1 && Math.abs(seg.x - endX) > 1) {
+        const sr = seg.y + rng.int(-1, 0), sc = seg.x + rng.int(-1, 0);
+        sandZones.push({r: sr, c: sc});
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const r2 = sr+dr, c2 = sc+dc;
+            if (r2 > 1 && r2 < ROWS-2 && c2 > 1 && c2 < COLS-2 && grid[r2][c2] === 'G') {
+              grid[r2][c2] = 'S'; // Sand
             }
-        });
-
-        conn.on('close', function() {
-            appendSystemMessage("La sesión de red activa ha finalizado.");
-            document.getElementById('message-text').disabled = true;
-            document.getElementById('send-btn').disabled = true;
-            document.getElementById('alias-area').style.display = 'none';
-            updateStatusUI();
-        });
+          }
+        }
+      }
     }
+  }
 
-    // --- MANEJO DE NOMBRES / ALIAS DE AMIGOS ---
-    function saveFriendAlias() {
-        const aliasInput = document.getElementById('friend-alias-input').value.trim();
-        if (!currentActivePeerId) return;
+  // Bumpers
+  const bumpers = [];
+  let numBumpers = 0;
+  if (difficulty > 0.3) {
+    numBumpers = Math.floor(difficulty * 4);
+    for (let i = 0; i < numBumpers; i++) {
+      if (path.length < 3) break;
+      const seg = path[rng.int(1, Math.max(1, path.length - 2))];
+      const bx = (seg.x + rng.range(-0.8, 0.8)) * TILE + TILE/2;
+      const by = (seg.y + rng.range(-0.8, 0.8)) * TILE + TILE/2;
+      if (Math.abs(bx/TILE - startX) > 1.5 && Math.abs(bx/TILE - endX) > 1.5) {
+        bumpers.push({x: bx, y: by, r: BUMPER_R, hue: rng.int(20, 45)});
+      }
+    }
+  }
 
-        if (aliasInput) {
-            localStorage.setItem('alias_' + currentActivePeerId, aliasInput);
-            appendSystemMessage(`Alias actualizado: El ID ahora se llama "${aliasInput}"`);
+  // Calcular Par
+  const distPath = path.length;
+  let par = 3;
+  if (distPath > 12) par = 4;
+  if (distPath > 18 || numWater > 1 || bumpers.length > 3) par = 5;
+  if (difficulty < 0.2 && distPath < 8) par = 2;
+
+  // Posición mundo de inicio y fin
+  const startWorld = { x: startX * TILE + TILE/2, y: startY * TILE + TILE/2 };
+  const endWorld = { x: endX * TILE + TILE/2, y: endY * TILE + TILE/2 };
+
+  return { grid, bumpers, par, startWorld, endWorld, waterZones, sandZones, path };
+}
+
+// ═══════════════════════════════════════════════════════
+//  ESTADO GLOBAL DEL JUEGO
+// ═══════════════════════════════════════════════════════
+let state = null;
+let holeData = null;
+let inputSeed = 0;
+let globalRng = null;
+let demoMode = false;
+
+// ─── PeerJS ────────────────────────────────────────────
+let peer = null;          // instancia Peer local
+let conn = null;          // DataConnection activa
+let myPid = -1;           // 0=host/J1, 1=guest/J2
+let isHost = false;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, offsetX = 0, offsetY = 60;
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+  offsetY = 60;
+}
+window.addEventListener('resize', () => { resize(); if (state) drawFrame(); });
+resize();
+
+// ═══════════════════════════════════════════════════════
+//  PELOTA Y FÍSICA
+// ═══════════════════════════════════════════════════════
+function createBall(x, y, pid) {
+  return { x, y, vx: 0, vy: 0, pid, active: true, trail: [], sinking: false, sinkTimer: 0, lastSafeX: x, lastSafeY: y };
+}
+
+function getBallFriction(ball) {
+  const c = Math.floor(ball.x / TILE);
+  const r = Math.floor(ball.y / TILE);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    const t = holeData.grid[r][c];
+    if (t === 'S') return FRICTION_SAND;
+    if (t === 'L') return 0.98;
+  }
+  return FRICTION_GRASS;
+}
+
+function tileAt(x, y) {
+  const c = Math.floor(x / TILE);
+  const r = Math.floor(y / TILE);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return 'W';
+  return holeData.grid[r][c];
+}
+
+function stepBall(ball) {
+  if (!ball.active || ball.sinking) return;
+  const speed = Math.hypot(ball.vx, ball.vy);
+  if (speed < 0.08) { ball.vx = 0; ball.vy = 0; return; }
+
+  // Guardar posición segura cuando esté en césped o arena
+  const t = tileAt(ball.x, ball.y);
+  if (t === 'G' || t === 'S') {
+    ball.lastSafeX = ball.x;
+    ball.lastSafeY = ball.y;
+  }
+
+  // Fricción
+  const fr = getBallFriction(ball);
+  ball.vx *= fr;
+  ball.vy *= fr;
+
+  // Mover
+  const steps = Math.ceil(speed / TILE * 3);
+  const dt = 1 / steps;
+  for (let s = 0; s < steps; s++) {
+    const nx = ball.x + ball.vx * dt;
+    const ny = ball.y + ball.vy * dt;
+    const tx = tileAt(nx, ball.y);
+    const ty = tileAt(ball.x, ny);
+
+    if (tx === 'W') { ball.vx *= -ELASTICITY; }
+    else { ball.x = nx; }
+
+    if (ty === 'W') { ball.vy *= -ELASTICITY; }
+    else { ball.y = ny; }
+
+    // Bordes mundo
+    if (ball.x < BALL_R) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx) * ELASTICITY; }
+    if (ball.x > COLS*TILE - BALL_R) { ball.x = COLS*TILE - BALL_R; ball.vx = -Math.abs(ball.vx) * ELASTICITY; }
+    if (ball.y < BALL_R) { ball.y = BALL_R; ball.vy = Math.abs(ball.vy) * ELASTICITY; }
+    if (ball.y > ROWS*TILE - BALL_R) { ball.y = ROWS*TILE - BALL_R; ball.vy = -Math.abs(ball.vy) * ELASTICITY; }
+
+    // Bumpers
+    for (const b of holeData.bumpers) {
+      const dx = ball.x - b.x, dy = ball.y - b.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < BALL_R + b.r) {
+        const nx2 = dx / dist, ny2 = dy / dist;
+        const dot = ball.vx * nx2 + ball.vy * ny2;
+        ball.vx = (ball.vx - 2 * dot * nx2) * BUMPER_ELASTICITY;
+        ball.vy = (ball.vy - 2 * dot * ny2) * BUMPER_ELASTICITY;
+        ball.x = b.x + (BALL_R + b.r + 1) * nx2;
+        ball.y = b.y + (BALL_R + b.r + 1) * ny2;
+        b.hit = 0.3;
+        break;
+      }
+    }
+  }
+
+  // Trail
+  ball.trail.push({x: ball.x, y: ball.y, speed: Math.hypot(ball.vx, ball.vy)});
+  if (ball.trail.length > 30) ball.trail.shift();
+
+  // Agua
+  const curTile = tileAt(ball.x, ball.y);
+  if (curTile === 'L' && !ball.sinking) {
+    ball.sinking = true;
+    ball.sinkTimer = 60;
+    ball.vx = 0; ball.vy = 0;
+  }
+
+  // Hoyo
+  if (!ball.sinking) {
+    const dx = ball.x - holeData.endWorld.x;
+    const dy = ball.y - holeData.endWorld.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < HOLE_R - 2 && Math.hypot(ball.vx, ball.vy) < 4) {
+      ball.holed = true;
+      ball.vx = 0; ball.vy = 0;
+    }
+  }
+}
+
+function isBallMoving(ball) {
+  return Math.hypot(ball.vx, ball.vy) > 0.1 || ball.sinking;
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDERIZADO
+// ═══════════════════════════════════════════════════════
+function worldToScreen(wx, wy) {
+  return { sx: wx + offsetX, sy: wy + offsetY };
+}
+
+const GRASS_LIGHT = '#4caf50';
+const GRASS_DARK = '#388e3c';
+const WALL_TOP = '#e0e0e0';
+const WALL_SHADE = '#bdbdbd';
+const WATER_COLOR = '#1976d2';
+const WATER_SHIMMER = '#42a5f5';
+const SAND_COLOR = '#f9a825';
+const SAND_DARK = '#f57f17';
+
+function drawTile(ctx, r, c, type) {
+  const {sx, sy} = worldToScreen(c * TILE, r * TILE);
+  switch (type) {
+    case 'G': {
+      const light = (r + c) % 2 === 0;
+      ctx.fillStyle = light ? GRASS_LIGHT : GRASS_DARK;
+      ctx.fillRect(sx, sy, TILE, TILE);
+      break;
+    }
+    case 'W': {
+      // Pared con relieve
+      const grd = ctx.createLinearGradient(sx, sy, sx, sy + TILE);
+      grd.addColorStop(0, '#f5f5f5');
+      grd.addColorStop(0.4, '#e0e0e0');
+      grd.addColorStop(1, '#9e9e9e');
+      ctx.fillStyle = grd;
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Sombra interior
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillRect(sx, sy + TILE - 6, TILE, 6);
+      ctx.fillRect(sx + TILE - 6, sy, 6, TILE);
+      // Highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fillRect(sx, sy, TILE, 4);
+      ctx.fillRect(sx, sy, 4, TILE);
+      break;
+    }
+    case 'L': {
+      // Agua animada
+      const t = Date.now() * 0.001;
+      const grd = ctx.createLinearGradient(sx, sy, sx + TILE, sy + TILE);
+      grd.addColorStop(0, '#1565c0');
+      grd.addColorStop(0.5 + 0.2 * Math.sin(t + c * 0.5), WATER_COLOR);
+      grd.addColorStop(1, WATER_SHIMMER);
+      ctx.fillStyle = grd;
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Ondas
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      for (let w = 0; w < 2; w++) {
+        ctx.beginPath();
+        const wy2 = sy + TILE * (0.3 + w * 0.3) + Math.sin(t * 1.5 + c + w) * 3;
+        ctx.moveTo(sx + 4, wy2);
+        ctx.bezierCurveTo(sx + TILE/3, wy2 - 4, sx + 2*TILE/3, wy2 + 4, sx + TILE - 4, wy2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'S': {
+      // Arena
+      const sg = ctx.createRadialGradient(sx+TILE/2,sy+TILE/2,0,sx+TILE/2,sy+TILE/2,TILE*0.7);
+      sg.addColorStop(0, '#ffe082');
+      sg.addColorStop(1, SAND_DARK);
+      ctx.fillStyle = sg;
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Puntitos de arena
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      for (let d = 0; d < 6; d++) {
+        const px = sx + ((c * 7 + d * 13 + r * 5) % TILE);
+        const py = sy + ((r * 9 + d * 7 + c * 3) % TILE);
+        ctx.fillRect(px, py, 2, 2);
+      }
+      break;
+    }
+  }
+}
+
+function drawHole(ctx) {
+  const {sx, sy} = worldToScreen(holeData.endWorld.x, holeData.endWorld.y);
+  // Sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 4, HOLE_R + 2, HOLE_R - 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Hoyo negro
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  ctx.arc(sx, sy, HOLE_R, 0, Math.PI * 2);
+  ctx.fill();
+  // Anillo blanco
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // Bandera
+  const flagH = 36;
+  const flagX = sx + 4, flagY = sy - HOLE_R - 2;
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(flagX, flagY);
+  ctx.lineTo(flagX, flagY - flagH);
+  ctx.stroke();
+  // Triángulo rojo
+  const t = Date.now() * 0.002;
+  const wave = Math.sin(t) * 3;
+  ctx.fillStyle = '#e53935';
+  ctx.beginPath();
+  ctx.moveTo(flagX, flagY - flagH);
+  ctx.lineTo(flagX + 16 + wave, flagY - flagH + 7 + wave * 0.3);
+  ctx.lineTo(flagX, flagY - flagH + 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#b71c1c';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function drawBumper(ctx, b) {
+  const {sx, sy} = worldToScreen(b.x, b.y);
+  const hit = b.hit || 0;
+  const r = b.r + hit * 4;
+  // Glow
+  if (hit > 0) {
+    const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 2);
+    grd.addColorStop(0, `hsla(${b.hue},100%,60%,0.6)`);
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.arc(sx + 2, sy + 4, r, 0, Math.PI * 2);
+  ctx.fill();
+  // Cuerpo
+  const grd = ctx.createRadialGradient(sx - r*0.3, sy - r*0.3, r*0.1, sx, sy, r);
+  grd.addColorStop(0, `hsl(${b.hue+20},100%,75%)`);
+  grd.addColorStop(0.6, `hsl(${b.hue},90%,55%)`);
+  grd.addColorStop(1, `hsl(${b.hue-10},80%,35%)`);
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.fill();
+  // Brillo
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.beginPath();
+  ctx.arc(sx - r*0.25, sy - r*0.3, r*0.3, 0, Math.PI * 2);
+  ctx.fill();
+  if (b.hit > 0) b.hit -= 0.02;
+}
+
+function drawBall(ctx, ball) {
+  if (ball.holed) return;
+  const {sx, sy} = worldToScreen(ball.x, ball.y);
+  const speed = Math.hypot(ball.vx, ball.vy);
+
+  // Trail
+  if (ball.trail.length > 2 && speed > 1) {
+    for (let i = 1; i < ball.trail.length; i++) {
+      const a = ball.trail[i - 1];
+      const b2 = ball.trail[i];
+      const ap = worldToScreen(a.x, a.y);
+      const bp = worldToScreen(b2.x, b2.y);
+      const t2 = i / ball.trail.length;
+      const spd = Math.min(b2.speed / 8, 1);
+      ctx.strokeStyle = `hsla(${80 + ball.pid * 200},100%,${50 + spd * 30}%,${t2 * spd * 0.7})`;
+      ctx.lineWidth = (BALL_R * 1.2) * (i / ball.trail.length);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(ap.sx, ap.sy);
+      ctx.lineTo(bp.sx, bp.sy);
+      ctx.stroke();
+    }
+  }
+
+  // Sinking effect
+  let scale = 1;
+  if (ball.sinking) {
+    scale = ball.sinkTimer / 60;
+    // Ondas de agua
+    const waveR = (1 - scale) * TILE / 2;
+    ctx.strokeStyle = `rgba(66,165,245,${scale * 0.8})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(sx, sy, BALL_R + waveR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Sombra
+  ctx.fillStyle = `rgba(0,0,0,${0.3 * scale})`;
+  ctx.beginPath();
+  ctx.ellipse(sx + 3, sy + 5, BALL_R * scale, BALL_R * 0.6 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Color por jugador
+  const colors = [
+    {base: '#ef5350', light: '#ff8a80', dark: '#b71c1c'},
+    {base: '#42a5f5', light: '#82d3ff', dark: '#0d47a1'}
+  ];
+  const col = colors[ball.pid];
+
+  // Cuerpo
+  const grd = ctx.createRadialGradient(sx - BALL_R*0.3, sy - BALL_R*0.3, BALL_R*0.1*scale, sx, sy, BALL_R*scale*1.1);
+  grd.addColorStop(0, col.light);
+  grd.addColorStop(0.5, col.base);
+  grd.addColorStop(1, col.dark);
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(sx, sy, BALL_R * scale, 0, Math.PI * 2);
+  ctx.fill();
+  // Brillo
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.arc(sx - BALL_R*0.25*scale, sy - BALL_R*0.3*scale, BALL_R*0.28*scale, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawAimLine(ball, mouseX, mouseY) {
+  if (!ball) return;
+  const {sx: bx, sy: by} = worldToScreen(ball.x, ball.y);
+  const dx = mouseX - bx, dy = mouseY - by;
+  const dist = Math.hypot(dx, dy);
+  const force = Math.min(dist / 100, 1);
+  const nx = dx / dist, ny = dy / dist;
+
+  // Línea de guía punteada
+  const numDots = 12;
+  for (let i = 1; i <= numDots; i++) {
+    const t2 = i / numDots;
+    const dotX = bx - nx * t2 * 120 * force;
+    const dotY = by - ny * t2 * 120 * force;
+    const alpha = 1 - t2 * 0.7;
+    const r2 = 4 * (1 - t2 * 0.6);
+    const h = force < 0.4 ? 120 : force < 0.7 ? 60 : 0;
+    ctx.fillStyle = `hsla(${h},100%,60%,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, r2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Flecha al final
+  const endX = bx - nx * 130 * force;
+  const endY = by - ny * 130 * force;
+  const angle = Math.atan2(-ny, -nx);
+  ctx.fillStyle = `hsl(${force < 0.5 ? 120 : 0},100%,55%)`;
+  ctx.beginPath();
+  ctx.moveTo(endX + Math.cos(angle) * 10, endY + Math.sin(angle) * 10);
+  ctx.lineTo(endX + Math.cos(angle + 2.5) * 6, endY + Math.sin(angle + 2.5) * 6);
+  ctx.lineTo(endX + Math.cos(angle - 2.5) * 6, endY + Math.sin(angle - 2.5) * 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Power bar
+  const pf = document.getElementById('powerFill');
+  pf.style.width = (force * 100) + '%';
+  pf.style.background = `hsl(${120 - force * 120},100%,50%)`;
+}
+
+let camX = 0, camY = 0, targetCamX = 0, targetCamY = 0;
+
+function updateCamera() {
+  if (!state) return;
+  const ball = state.balls[state.currentPlayer];
+  const {sx, sy} = worldToScreen(ball.x, ball.y);
+  const mapCenterX = COLS * TILE / 2;
+  const mapCenterY = ROWS * TILE / 2;
+  targetCamX = W/2 - ball.x;
+  targetCamY = H/2 - ball.y - 30;
+  // Limitar cámara
+  const minX = W - COLS * TILE - 10;
+  const maxX = 10;
+  const minY = H - ROWS * TILE - 60;
+  const maxY = 10;
+  targetCamX = Math.max(minX, Math.min(maxX, targetCamX));
+  targetCamY = Math.max(minY, Math.min(maxY - 60, targetCamY));
+  // Suavizar
+  offsetX += (targetCamX - offsetX) * 0.1;
+  offsetY += (targetCamY + 60 - offsetY) * 0.1;
+  // Asegurar HUD space
+  if (offsetY > 60) offsetY = 60;
+}
+
+function drawFrame() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Fondo fuera del mapa
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!holeData) return;
+
+  // Sombra del mapa
+  const ms = worldToScreen(0, 0);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(ms.sx + 8, ms.sy + 8, COLS * TILE, ROWS * TILE);
+
+  // Tiles
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      drawTile(ctx, r, c, holeData.grid[r][c]);
+    }
+  }
+
+  // Posición inicio
+  const {sx: isx, sy: isy} = worldToScreen(holeData.startWorld.x, holeData.startWorld.y);
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.arc(isx, isy, 14, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TEE', isx, isy + 4);
+
+  drawHole(ctx);
+
+  for (const b of holeData.bumpers) drawBumper(ctx, b);
+
+  // Línea de apuntado
+  if (state && state.aiming && !state.animating && !state.balls[state.currentPlayer].sinking) {
+    drawAimLine(state.balls[state.currentPlayer], state.mouseX, state.mouseY);
+  }
+
+  // Pelotas
+  if (state) {
+    for (const ball of state.balls) drawBall(ctx, ball);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOOP PRINCIPAL
+// ═══════════════════════════════════════════════════════
+let lastTime = 0;
+function gameLoop(ts) {
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+
+  if (state) {
+    updateCamera();
+
+    // Física
+    if (state.animating) {
+      let anyMoving = false;
+      for (const ball of state.balls) {
+        if (ball.sinking) {
+          ball.sinkTimer--;
+          if (ball.sinkTimer <= 0) {
+            ball.sinking = false;
+            ball.x = ball.lastSafeX;
+            ball.y = ball.lastSafeY;
+            ball.vx = 0; ball.vy = 0;
+            ball.trail = [];
+            state.shots[ball.pid]++;
+            showMessage('💧 ¡Al agua! +1 golpe de penalización');
+          }
+          anyMoving = true;
         } else {
-            localStorage.removeItem('alias_' + currentActivePeerId);
-            appendSystemMessage("Alias eliminado. Se mostrará el ID nativo.");
+          stepBall(ball);
+          if (isBallMoving(ball)) anyMoving = true;
         }
-        updateStatusUI();
-        // Recargar el contenedor visual del chat para refrescar nombres viejos por el nuevo alias
-        loadHistoryFromStorage();
-    }
+      }
 
-    function getFriendName(id) {
-        if (!id) return "Desconocido";
-        const alias = localStorage.getItem('alias_' + id);
-        return alias ? alias : `ID: ${id.substring(0,8)}...`;
-    }
-
-    // --- LÓGICA DE ALMACENAMIENTO DE MENSAJES (PERSISTENCIA) ---
-    function saveMessageToStorage(peerId, senderLabel, content, className, mediaType = null) {
-        // Buscamos el historial existente en LocalStorage o creamos uno vacío
-        let history = JSON.parse(localStorage.getItem('y2k_chat_history')) || [];
-        
-        const newMsg = {
-            peerId: peerId, // Agrupador de la conversación
-            sender: senderLabel,
-            content: content,
-            className: className,
-            mediaType: mediaType,
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-        };
-
-        history.push(newMsg);
-        localStorage.setItem('y2k_chat_history', JSON.stringify(history));
-    }
-
-    function loadHistoryFromStorage() {
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '<div class="msg msg-system">*** Historial cargado desde el almacenamiento local. ***</div>';
-        
-        const history = JSON.parse(localStorage.getItem('y2k_chat_history')) || [];
-        
-        history.forEach(msg => {
-            // Actualizar el nombre en tiempo real por si cambió el alias recientemente
-            let currentSenderName = msg.sender;
-            if (msg.className === 'msg-remote') {
-                currentSenderName = getFriendName(msg.peerId);
-            }
-
-            if (msg.mediaType) {
-                renderMediaDOM(currentSenderName, msg.content, msg.mediaType, msg.className, msg.time);
-            } else {
-                renderTextDOM(currentSenderName, msg.content, msg.className, msg.time);
-            }
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function clearAllData() {
-        if (confirm("¿Estás completamente seguro de borrar todos los mensajes y aliases del disco local? Tu ID se mantendrá.")) {
-            localStorage.removeItem('y2k_chat_history');
-            // Borrar aliases
-            Object.keys(localStorage).forEach(key => {
-                if (key.startsWith('alias_')) localStorage.removeItem(key);
-            });
-            loadHistoryFromStorage();
-            appendSystemMessage("Memoria limpia.");
-        }
-    }
-
-    // --- ENVIAR DATOS ---
-    function sendMessage() {
-        const textInput = document.getElementById('message-text');
-        const text = textInput.value.trim();
-        if (!text || !conn) return;
-
-        conn.send({ type: 'text', content: text });
-        
-        appendMessage('Tú', text, 'msg-local');
-        saveMessageToStorage(currentActivePeerId, 'Tú', text, 'msg-local');
-        
-        textInput.value = '';
-    }
-
-    function handleMediaShare(input, mediaType) {
-        const file = input.files[0];
-        if (!file || !conn) return;
-
-        if (file.size > 1.5 * 1024 * 1024) { 
-            alert("El archivo supera 1.5MB (Límite del búfer del navegador).");
-            return;
-        }
-
-        const reader = new FileReader();
-        document.getElementById('media-status').innerText = "Escribiendo en canal...";
-
-        reader.onload = function(e) {
-            const base64Data = e.target.result;
-            conn.send({ type: 'media', mediaType: mediaType, content: base64Data });
-            
-            appendMediaMessage('Tú', base64Data, mediaType, 'msg-local');
-            saveMessageToStorage(currentActivePeerId, 'Tú', base64Data, 'msg-local', mediaType);
-            
-            document.getElementById('media-status').innerText = "Guardado/Enviado";
-        };
-
-        reader.readAsDataURL(file);
-        input.value = '';
-    }
-
-    // --- CONTROLADORES DE INTERFAZ GRÁFICA (DOM) ---
-    function updateStatusUI() {
-        const statusList = document.getElementById('peer-status-list');
-        const targetLabel = document.getElementById('chat-target-name');
-
-        if (conn && conn.open) {
-            const name = getFriendName(currentActivePeerId);
-            document.getElementById('status-left').innerText = `Sesión activa con: ${name}`;
-            targetLabel.innerText = `Charlando con: ${name}`;
-            statusList.innerHTML = `
-                • Red P2P: <span style="color:green;font-weight:bold;">EN LÍNEA</span><br>
-                • Amigo: ${name}<br>
-                • IndexDB: Registrado
-            `;
+      if (!anyMoving) {
+        state.animating = false;
+        const ball = state.balls[state.currentPlayer];
+        // Sincronización de posición
+        if (ball.holed) {
+          onBallHoled();
         } else {
-            document.getElementById('status-left').innerText = "Esperando enlace...";
-            targetLabel.innerText = "Sin sesión activa";
-            statusList.innerHTML = `
-                • Servidor P2P: <span style="color:green;font-weight:bold;">LISTO</span><br>
-                • Estado: Escuchando red...<br>
-                • Persistencia: Habilitada
-            `;
+          nextTurn();
         }
+      }
     }
 
-    function appendMessage(sender, text, className) {
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        renderTextDOM(sender, text, className, time);
+    // Demo IA
+    if (demoMode && !state.animating && !state.gameOver) {
+      state.demoTimer = (state.demoTimer || 0) + dt;
+      if (state.demoTimer > 1.2) {
+        state.demoTimer = 0;
+        aiShoot();
+      }
     }
+  }
 
-    function renderTextDOM(sender, text, className, time) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${className}`;
-        msgDiv.innerHTML = `<div class="msg-meta">${sender} [${time}]:</div><div>${escapeHTML(text)}</div>`;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+  drawFrame();
+  requestAnimationFrame(gameLoop);
+}
+
+// ═══════════════════════════════════════════════════════
+//  LÓGICA DE JUEGO
+// ═══════════════════════════════════════════════════════
+function startGame(demo = false) {
+  // Compatibilidad — redirige a modo local
+  startLocalGame(demo);
+}
+
+function loadHole(num) {
+  const rng = new SeededRandom(inputSeed + num * 997);
+  holeData = generateHole(num, rng);
+  state.shots = [0, 0];
+  state.animating = false;
+  state.aiming = false;
+  state.currentPlayer = 0;
+
+  state.balls = [
+    createBall(holeData.startWorld.x - 8, holeData.startWorld.y, 0),
+    createBall(holeData.startWorld.x + 8, holeData.startWorld.y, 1)
+  ];
+
+  // Centrar cámara inmediatamente en la posición de inicio
+  const startBall = state.balls[0];
+  offsetX = W / 2 - startBall.x;
+  offsetY = H / 2 - startBall.y - 30;
+  const minX = W - COLS * TILE - 10;
+  const maxX = 10;
+  const minY = H - ROWS * TILE - 60;
+  offsetX = Math.max(minX, Math.min(maxX, offsetX));
+  offsetY = Math.max(minY, Math.min(10, offsetY));
+  if (offsetY > 60) offsetY = 60;
+
+  updateHUD();
+  showMessage(`🏌 Hoyo ${num} | Par ${holeData.par}`);
+}
+
+function shoot(pid, force, angle) {
+  const cmd = `GOLPE|${pid}|${force.toFixed(4)}|${angle.toFixed(6)}`;
+  // Enviar al peer si estamos conectados
+  enviarAlPeer(cmd);
+  // Aplicar localmente siempre
+  procesarComandoRed(cmd);
+}
+
+// ─── ENVÍO POR PEERJS ────────────────────────────────
+function enviarAlPeer(cmd) {
+  if (conn && conn.open) {
+    try { conn.send(cmd); } catch(e) { netDebugSet('⚠️ Error enviando: ' + e.message); }
+  }
+}
+
+// ─── RECEPCIÓN DE MENSAJES DE RED ────────────────────
+function onMensajeRecibido(cmd) {
+  netDebugSet('📥 ' + cmd);
+  const parts = cmd.split('|');
+  // Solo aplicar golpes del peer (el nuestro ya se aplicó localmente)
+  if (parts[0] === 'GOLPE') {
+    const pid = parseInt(parts[1]);
+    if (pid !== myPid) {
+      procesarComandoRed(cmd);
     }
-
-    function appendMediaMessage(sender, src, mediaType, className) {
-        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        renderMediaDOM(sender, src, mediaType, className, time);
+  } else if (parts[0] === 'START') {
+    // Guest recibe seed del host y arranca
+    inputSeed = parseInt(parts[1]);
+    iniciarPartidaReal();
+  } else if (parts[0] === 'HOLE') {
+    // Sincronizar cambio de hoyo
+    const num = parseInt(parts[1]);
+    if (state && state.holeNum !== num) {
+      state.holeNum = num;
+      loadHole(num);
     }
+  }
+}
 
-    function renderMediaDOM(sender, src, mediaType, className, time) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${className}`;
-        let mediaHTML = mediaType === 'img' ? `<img src="${src}" class="media-preview">` : `<audio controls src="${src}" class="audio-player"></audio>`;
-        msgDiv.innerHTML = `<div class="msg-meta">${sender} [${time}]:</div>${mediaHTML}`;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+// ─── FUNCIÓN CENTRAL DE COMANDOS ────────────────────
+function procesarComandoRed(stringComando) {
+  const parts = stringComando.split('|');
+  if (parts[0] === 'GOLPE') {
+    const pid = parseInt(parts[1]);
+    const force = parseFloat(parts[2]);
+    const angle = parseFloat(parts[3]);
+    const ball = state.balls[pid];
+    ball.vx = Math.cos(angle) * force * MAX_POWER;
+    ball.vy = Math.sin(angle) * force * MAX_POWER;
+    ball.trail = [];
+    state.shots[pid]++;
+    state.animating = true;
+    state.aiming = false;
+    updateHUD();
+    netDebugSet('📤 ' + stringComando);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOBBY P2P — PANTALLAS
+// ═══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('#overlay .overlay-box').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function netDebugSet(txt) {
+  document.getElementById('netDebug').textContent = txt;
+}
+
+function copyHostId(id) {
+  navigator.clipboard.writeText(id).then(() => {
+    const btn = event.target;
+    const prev = btn.textContent;
+    btn.textContent = '✅ ¡Copiado!';
+    setTimeout(() => btn.textContent = prev, 1500);
+  }).catch(() => {
+    // Fallback para file:// donde clipboard puede estar bloqueado
+    const ta = document.createElement('textarea');
+    ta.value = id;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('ID copiado: ' + id);
+  });
+}
+
+// ─── HOST ────────────────────────────────────────────
+function hostGame() {
+  const btn = document.getElementById('btnHost');
+  btn.disabled = true;
+  btn.textContent = '⏳ Conectando…';
+  const status = document.getElementById('hostStatus');
+  status.innerHTML = '<span style="color:rgba(255,255,255,0.5)">Iniciando servidor P2P…</span>';
+
+  // Destruir peer anterior si existe
+  if (peer) { try { peer.destroy(); } catch(e){} }
+
+  peer = new Peer(undefined, { debug: 0 });
+
+  peer.on('open', (id) => {
+    isHost = true;
+    myPid = 0;
+    btn.textContent = '✅ Sala creada — esperando J2…';
+
+    status.innerHTML = `
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px">Comparte este ID con el J2:</div>
+      <div id="hostIdDisplay" style="font-size:12px;font-weight:700;letter-spacing:1px;color:#7eff47;word-break:break-all;
+                  background:rgba(126,255,71,0.1);border:2px solid rgba(126,255,71,0.4);
+                  border-radius:12px;padding:10px 16px;font-family:monospace;cursor:pointer"
+           onclick="copyHostId('${id}')" title="Clic para copiar">${id}</div>
+      <button class="btn btn-secondary" style="padding:6px 18px;font-size:12px;margin-top:0" onclick="copyHostId('${id}')">📋 Copiar ID</button>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">⏳ Esperando conexión…</div>`;
+    netDebugSet('📡 Esperando J2… ID: ' + id);
+  });
+
+  peer.on('connection', (c) => {
+    conn = c;
+    setupConn();
+    conn.on('open', () => {
+      netDebugSet('✅ J2 conectado!');
+      document.getElementById('hostStatus').innerHTML +=
+        '<div style="color:#7eff47;font-weight:700;font-size:14px">✅ ¡Jugador 2 conectado!</div>';
+
+      // Enviar seed al guest y arrancar en ambos lados
+      const seedStr = document.getElementById('seedInput').value || String(Date.now());
+      inputSeed = hashStr(seedStr) || 1;
+      conn.send(`START|${inputSeed}`);
+
+      setTimeout(() => iniciarPartidaReal(), 200);
+    });
+  });
+
+  peer.on('error', (err) => {
+    btn.disabled = false;
+    btn.textContent = '📡 Generar código de sala';
+    status.innerHTML = `<span style="color:#ff6b6b">❌ Error: ${err.message}</span>`;
+    netDebugSet('❌ Error PeerJS: ' + err.type);
+  });
+}
+
+// ─── GUEST ───────────────────────────────────────────
+function joinGame() {
+  const hostId = document.getElementById('joinCodeInput').value.trim();
+  if (hostId.length < 8) {
+    document.getElementById('joinStatus').innerHTML = '<span style="color:#ff6b6b">Pega el ID completo del host</span>';
+    return;
+  }
+
+  const btn = document.getElementById('btnJoin');
+  btn.disabled = true;
+  btn.textContent = '⏳ Conectando…';
+  const status = document.getElementById('joinStatus');
+  status.innerHTML = 'Iniciando peer…';
+
+  if (peer) { try { peer.destroy(); } catch(e){} }
+  peer = new Peer(undefined, { debug: 0 });
+
+  peer.on('open', (myId) => {
+    myPid = 1;
+    isHost = false;
+    netDebugSet('🔍 Conectando a: ' + hostId);
+    status.innerHTML = 'Conectando al host…';
+    tryConnect(hostId, status, btn);
+  });
+
+  peer.on('error', (err) => {
+    btn.disabled = false;
+    btn.textContent = '🔌 Conectar';
+    status.innerHTML = `<span style="color:#ff6b6b">❌ ${err.message || err.type}</span>`;
+    netDebugSet('❌ ' + err.type);
+  });
+}
+
+function tryConnect(hostId, status, btn) {
+  conn = peer.connect(hostId, { reliable: true });
+  let timeout = setTimeout(() => {
+    if (!conn || !conn.open) {
+      status.innerHTML = '<span style="color:#ff6b6b">❌ No se pudo conectar. Verifica el código.</span>';
+      btn.disabled = false;
+      btn.textContent = '🔌 Conectar';
+      netDebugSet('❌ Timeout de conexión');
     }
+  }, 10000);
 
-    function appendSystemMessage(text) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = "msg msg-system";
-        msgDiv.innerText = `*** ${text} ***`;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+  setupConn();
+
+  conn.on('open', () => {
+    clearTimeout(timeout);
+    netDebugSet('✅ Conectado al host!');
+    status.innerHTML = '<span style="color:#7eff47">✅ Conectado! Esperando que el host inicie…</span>';
+    // La partida arranca cuando el host envíe START
+  });
+
+  conn.on('error', (err) => {
+    clearTimeout(timeout);
+    status.innerHTML = `<span style="color:#ff6b6b">❌ ${err}</span>`;
+    btn.disabled = false;
+    btn.textContent = '🔌 Conectar';
+  });
+}
+
+// ─── SETUP COMÚN DE CONEXIÓN ─────────────────────────
+function setupConn() {
+  conn.on('data', (data) => {
+    onMensajeRecibido(data);
+  });
+  conn.on('close', () => {
+    netDebugSet('🔌 Conexión cerrada');
+    if (state && !state.gameOver) {
+      showMessage('⚠️ El otro jugador se desconectó', 5000);
     }
+  });
+  conn.on('error', (err) => {
+    netDebugSet('⚠️ Error de conexión: ' + err);
+  });
+}
 
-    function appendErrorMessage(text) {
-        const chatBox = document.getElementById('chat-box');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = "msg msg-error";
-        msgDiv.innerText = `[Error] ${text}`;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+// ─── MODO LOCAL / DEMO ───────────────────────────────
+function startLocalGame(demo = false) {
+  demoMode = demo;
+  myPid = 0;
+  isHost = true;
+  const seedStr = String(Math.floor(Math.random() * 999999));
+  document.getElementById('seedInput') && (document.getElementById('seedInput').value = seedStr);
+  inputSeed = hashStr(seedStr) || 1;
+  iniciarPartidaReal();
+}
+
+// ─── INICIO DE PARTIDA ───────────────────────────────
+function iniciarPartidaReal() {
+  demoMode = false;
+  globalRng = new SeededRandom(inputSeed);
+  document.getElementById('overlay').classList.add('hidden');
+
+  state = {
+    holeNum: 1,
+    scores: [[], []],
+    shots: [0, 0],
+    balls: [],
+    currentPlayer: 0,
+    animating: false,
+    aiming: false,
+    mouseX: 0, mouseY: 0,
+    mouseDown: false,
+    gameOver: false,
+    demoTimer: 0
+  };
+
+  loadHole(1);
+  requestAnimationFrame(gameLoop);
+  netDebugSet(conn && conn.open ? '✅ P2P activo — Seed: ' + inputSeed : '🖥️ Modo local');
+}
+
+function nextTurn() {
+  state.currentPlayer = 1 - state.currentPlayer;
+  updatePlayerIndicators();
+  const name = state.currentPlayer === 0 ? '🔴 Jugador 1' : '🔵 Jugador 2';
+  const esmiTurno = (myPid === state.currentPlayer);
+  showMessage(`🎯 Turno de ${name}${esmiTurno ? ' (tú)' : ''}`);
+}
+
+function onBallHoled() {
+  const pid = state.currentPlayer;
+  const shots = state.shots[pid];
+  state.scores[pid].push(shots);
+
+  const diff = shots - holeData.par;
+  let txt = '';
+  if (diff <= -2) txt = '🦅 EAGLE!';
+  else if (diff === -1) txt = '🐦 BIRDIE!';
+  else if (diff === 0) txt = '👌 PAR!';
+  else if (diff === 1) txt = '😅 BOGEY';
+  else txt = '😤 DOBLE BOGEY+';
+  showMessage(txt, 2500);
+
+  const other = 1 - pid;
+  if (state.balls[other].holed || state.scores[other].length === state.holeNum) {
+    setTimeout(() => {
+      if (state.holeNum < 9) {
+        state.holeNum++;
+        // Solo el host sincroniza el cambio de hoyo
+        if (isHost) enviarAlPeer(`HOLE|${state.holeNum}`);
+        loadHole(state.holeNum);
+      } else {
+        endGame();
+      }
+    }, 2000);
+  } else {
+    state.currentPlayer = other;
+    state.balls[pid].active = false;
+    updatePlayerIndicators();
+    const otherName = other === 0 ? '🔴 J1' : '🔵 J2';
+    showMessage(`${txt} | Ahora ${otherName}${myPid === other ? ' (tú)' : ''}`);
+  }
+  updateHUD();
+}
+
+function endGame() {
+  state.gameOver = true;
+  const t0 = state.scores[0].reduce((a, b) => a + b, 0);
+  const t1 = state.scores[1].reduce((a, b) => a + b, 0);
+  const winner = t0 < t1 ? '🔴 Jugador 1' : t1 < t0 ? '🔵 Jugador 2' : null;
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML = `<div class="overlay-box">
+    <div class="overlay-title">⛳ FIN DE PARTIDA</div>
+    <div class="overlay-subtitle">${winner ? winner + ' GANA!' : '¡EMPATE!'}</div>
+    <div style="display:flex;gap:24px;justify-content:center;margin:20px 0;font-size:36px;font-weight:900">
+      <div><div style="color:#ff8888;font-size:14px">J1</div><div style="color:#fff">${t0}</div></div>
+      <div style="color:rgba(255,255,255,0.3);font-size:20px;align-self:center">vs</div>
+      <div><div style="color:#88bbff;font-size:14px">J2</div><div style="color:#fff">${t1}</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="location.reload()">🔄 Nueva Partida</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  IA DEMO
+// ═══════════════════════════════════════════════════════
+function aiShoot() {
+  const ball = state.balls[state.currentPlayer];
+  const hole = holeData.endWorld;
+  const dx = hole.x - ball.x, dy = hole.y - ball.y;
+  const dist = Math.hypot(dx, dy);
+  const angle = Math.atan2(dy, dx);
+  // Añadir algo de ruido
+  const noiseAngle = angle + (Math.random() - 0.5) * 0.3;
+  const force = Math.min(dist / (TILE * 6), 1) * (0.7 + Math.random() * 0.3);
+  shoot(state.currentPlayer, force, noiseAngle);
+}
+
+// ═══════════════════════════════════════════════════════
+//  HUD
+// ═══════════════════════════════════════════════════════
+function updateHUD() {
+  document.getElementById('hudHole').textContent = `${state.holeNum}/9`;
+  document.getElementById('hudPar').textContent = holeData.par;
+  document.getElementById('p1shots').textContent = state.shots[0];
+  document.getElementById('p2shots').textContent = state.shots[1];
+  updatePlayerIndicators();
+  renderScoreCard();
+}
+
+function updatePlayerIndicators() {
+  document.getElementById('p1ind').classList.toggle('active', state.currentPlayer === 0);
+  document.getElementById('p2ind').classList.toggle('active', state.currentPlayer === 1);
+}
+
+function renderScoreCard() {
+  const sc = document.getElementById('scoreCard');
+  let html = '';
+  for (let h = 0; h < Math.max(state.scores[0].length, state.scores[1].length, state.holeNum); h++) {
+    const s0 = state.scores[0][h];
+    const s1 = state.scores[1][h];
+    if (s0 !== undefined) {
+      const cl = s0 < holeData.par - 1 ? 'eagle' : s0 < holeData.par ? 'birdie' : s0 === holeData.par ? '' : s0 === holeData.par + 1 ? 'bogey' : 'double-bogey';
+      html += `<div class="score-cell p1 ${cl}">${s0}</div>`;
     }
-
-    // --- ESCÁNER QR ---
-    function toggleScanner() {
-        const area = document.getElementById('scanner-area');
-        const btn = document.getElementById('btn-scan');
-        if (area.style.display === 'block') { stopScanner(); } else {
-            area.style.display = 'block';
-            btn.innerText = "🛑 Parar";
-            btn.style.color = "red";
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 180, height: 180 } }, 
-                (text) => { document.getElementById('peer-id-input').value = text; stopScanner(); connectToPeer(text); }, () => {}
-            ).catch(err => { appendErrorMessage("Error cámara: " + err); stopScanner(); });
-        }
+    if (s1 !== undefined) {
+      const cl = s1 < holeData.par - 1 ? 'eagle' : s1 < holeData.par ? 'birdie' : s1 === holeData.par ? '' : s1 === holeData.par + 1 ? 'bogey' : 'double-bogey';
+      html += `<div class="score-cell p2 ${cl}">${s1}</div>`;
     }
+  }
+  sc.innerHTML = html || '<span style="color:rgba(255,255,255,0.3);font-size:11px">Sin puntos aún</span>';
+}
 
-    function stopScanner() {
-        const area = document.getElementById('scanner-area');
-        const btn = document.getElementById('btn-scan');
-        area.style.display = 'none'; btn.innerText = "📷 Escanear"; btn.style.color = "";
-        if (html5QrcodeScanner) { html5QrcodeScanner.stop().then(() => html5QrcodeScanner = null).catch(() => {}); }
-    }
+let msgTimer = null;
+function showMessage(text, duration = 1800) {
+  const el = document.getElementById('message');
+  el.textContent = text;
+  el.classList.remove('hidden');
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => el.classList.add('hidden'), duration);
+}
 
-    function triggerInput(id) { if (!conn) return alert("Conéctate primero."); document.getElementById(id).click(); }
-    function checkEnter(event) { if (event.key === 'Enter') sendMessage(); }
-    function escapeHTML(str) { return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
+// ═══════════════════════════════════════════════════════
+//  CONTROLES DE MOUSE / TOUCH
+// ═══════════════════════════════════════════════════════
+function getCanvasPos(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * (canvas.width / rect.width),
+    y: (clientY - rect.top)  * (canvas.height / rect.height)
+  };
+}
+
+function getEventPos(e) {
+  if (e.touches && e.touches[0]) return getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+  return getCanvasPos(e.clientX, e.clientY);
+}
+
+function isNearBall(mx, my) {
+  if (!state || !holeData) return false;
+  const ball = state.balls[state.currentPlayer];
+  if (ball.holed) return false;
+  const {sx, sy} = worldToScreen(ball.x, ball.y);
+  // Umbral más generoso en móvil (60px)
+  const threshold = ('ontouchstart' in window) ? 60 : 30;
+  return Math.hypot(mx - sx, my - sy) < threshold;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  if (!state || state.animating || state.gameOver || demoMode) return;
+  // Bloquear turno ajeno solo si hay conexión P2P activa
+  if (conn && conn.open && state.currentPlayer !== myPid) return;
+  const {x, y} = getEventPos(e);
+  if (isNearBall(x, y)) {
+    state.aiming = true;
+    state.mouseDown = true;
+    state.mouseX = x; state.mouseY = y;
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!state) return;
+  const {x, y} = getEventPos(e);
+  state.mouseX = x; state.mouseY = y;
+});
+
+canvas.addEventListener('mouseup', (e) => {
+  if (!state || !state.aiming || state.animating || demoMode) return;
+  if (conn && conn.open && state.currentPlayer !== myPid) return;
+  const {x, y} = getEventPos(e);
+  const ball = state.balls[state.currentPlayer];
+  const {sx, sy} = worldToScreen(ball.x, ball.y);
+  const dx = x - sx, dy = y - sy;
+  const dist = Math.hypot(dx, dy);
+  if (dist > 5) {
+    const force = Math.min(dist / 100, 1);
+    const angle = Math.atan2(-dy, -dx);
+    shoot(state.currentPlayer, force, angle);
+  }
+  state.aiming = false;
+  state.mouseDown = false;
+  document.getElementById('powerFill').style.width = '0%';
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (!state || state.animating || state.gameOver || demoMode) return;
+  if (conn && conn.open && state.currentPlayer !== myPid) return;
+  const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+  if (isNearBall(pos.x, pos.y)) {
+    state.aiming = true;
+    state.mouseDown = true;
+    state.mouseX = pos.x; state.mouseY = pos.y;
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  if (!state) return;
+  const pos = getCanvasPos(e.touches[0].clientX, e.touches[0].clientY);
+  state.mouseX = pos.x; state.mouseY = pos.y;
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  if (!state || !state.aiming || state.animating || demoMode) return;
+  if (conn && conn.open && state.currentPlayer !== myPid) return;
+  const pos = getCanvasPos(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  const ball = state.balls[state.currentPlayer];
+  const {sx, sy} = worldToScreen(ball.x, ball.y);
+  const dx = pos.x - sx, dy = pos.y - sy;
+  const dist = Math.hypot(dx, dy);
+  if (dist > 5) {
+    const force = Math.min(dist / 100, 1);
+    const angle = Math.atan2(-dy, -dx);
+    shoot(state.currentPlayer, force, angle);
+  }
+  state.aiming = false;
+  state.mouseDown = false;
+  document.getElementById('powerFill').style.width = '0%';
+}, { passive: false });
+
+// ═══════════════════════════════════════════════════════
+//  AYUDAS DE UI
+// ═══════════════════════════════════════════════════════
+function randomSeed() {
+  const el = document.getElementById('seedInput');
+  if (el) el.value = Math.floor(Math.random() * 999999);
+}
+
+// Semilla por defecto al cargar
+window.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('seedInput');
+  if (el) el.value = Math.floor(Math.random() * 999999);
+});
 </script>
 </body>
 </html>
