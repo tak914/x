@@ -23,14 +23,30 @@
   #hud {
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 60px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 100%);
+    min-height: 56px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 100%);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 10px;
     z-index: 100;
     border-bottom: 2px solid rgba(255,255,255,0.15);
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  @media (max-width: 600px) {
+    #hud { padding: 4px 8px; min-height: 48px; }
+    .hud-value { font-size: 16px !important; }
+    .hud-label { font-size: 8px !important; }
+    .player-indicator { font-size: 10px !important; padding: 2px 7px !important; max-width: 90px; }
+    #scoreCard { max-width: 120px; }
+    .score-cell { width: 18px; height: 18px; font-size: 9px; }
+    #message { font-size: 13px !important; padding: 8px 16px !important; bottom: 50px !important; }
+    #powerBar { width: 140px !important; bottom: 6px !important; }
+    .overlay-box { padding: 24px 20px !important; }
+    .overlay-title { font-size: 24px !important; }
+    .player-name-row { flex-direction: column; gap: 8px !important; }
+    .player-name-row input { width: 100% !important; }
   }
   .hud-section {
     display: flex;
@@ -55,33 +71,51 @@
   }
   .hud-value.highlight { color: #7eff47; }
   .player-indicator {
-    padding: 4px 14px;
+    padding: 3px 10px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     transition: all 0.3s;
+    white-space: nowrap;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+  /* Colores dinámicos por jugador */
+  .pc0 { background: rgba(255,80,80,0.3); border: 2px solid #ff5050; color: #ff8888; }
+  .pc1 { background: rgba(80,150,255,0.3); border: 2px solid #5096ff; color: #88bbff; }
+  .pc2 { background: rgba(80,220,120,0.3); border: 2px solid #50dc78; color: #88ffaa; }
+  .pc3 { background: rgba(255,200,50,0.3); border: 2px solid #ffc832; color: #ffdd88; }
+  .pc0.active { background: rgba(255,80,80,0.7); color: #fff; box-shadow: 0 0 12px #ff5050; }
+  .pc1.active { background: rgba(80,150,255,0.7); color: #fff; box-shadow: 0 0 12px #5096ff; }
+  .pc2.active { background: rgba(80,220,120,0.7); color: #fff; box-shadow: 0 0 12px #50dc78; }
+  .pc3.active { background: rgba(255,200,50,0.7); color: #fff; box-shadow: 0 0 12px #ffc832; }
+  /* Legacy compat */
   .p1-color { background: rgba(255,80,80,0.3); border: 2px solid #ff5050; color: #ff8888; }
   .p2-color { background: rgba(80,150,255,0.3); border: 2px solid #5096ff; color: #88bbff; }
   .p1-color.active { background: rgba(255,80,80,0.7); color: #fff; box-shadow: 0 0 12px #ff5050; }
   .p2-color.active { background: rgba(80,150,255,0.7); color: #fff; box-shadow: 0 0 12px #5096ff; }
   #scoreCard {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
+    flex-wrap: wrap;
+    max-width: 200px;
   }
   .score-cell {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     border-radius: 4px;
   }
-  .score-cell.p1 { background: rgba(255,80,80,0.5); color: #ffaaaa; }
-  .score-cell.p2 { background: rgba(80,150,255,0.5); color: #aaccff; }
+  .score-cell.p0 { background: rgba(255,80,80,0.5); color: #ffaaaa; }
+  .score-cell.p1 { background: rgba(80,150,255,0.5); color: #aaccff; }
+  .score-cell.p2 { background: rgba(80,220,120,0.5); color: #aaffcc; }
+  .score-cell.p3 { background: rgba(255,200,50,0.5); color: #ffeeaa; }
   .score-cell.birdie { background: #ffd700; color: #000; }
   .score-cell.eagle { background: #ff6600; color: #fff; }
   .score-cell.bogey { background: #888; color: #fff; }
@@ -102,12 +136,14 @@
     background: linear-gradient(135deg, #1e3a2f, #0d2218);
     border: 2px solid rgba(126,255,71,0.4);
     border-radius: 20px;
-    padding: 36px 44px;
+    padding: 28px 32px;
     text-align: center;
     color: white;
     max-width: 480px;
-    width: 90%;
+    width: 92%;
     box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(126,255,71,0.1);
+    max-height: 92vh;
+    overflow-y: auto;
   }
   .overlay-title {
     font-size: 32px;
@@ -233,10 +269,7 @@
         <div class="hud-value" id="hudPar">3</div>
       </div>
     </div>
-    <div class="hud-section">
-      <div class="player-indicator p1-color" id="p1ind">🔴 J1: <span id="p1shots">0</span></div>
-      <div class="player-indicator p2-color" id="p2ind">🔵 J2: <span id="p2shots">0</span></div>
-    </div>
+    <div class="hud-section" id="playerIndicatorsContainer" style="flex-wrap:wrap;gap:4px;justify-content:center;"></div>
     <div class="hud-section">
       <div id="scoreCard"></div>
     </div>
@@ -251,10 +284,23 @@
     <div class="overlay-box" id="screenMenu">
       <div class="overlay-title">⛳ MINI GOLF</div>
       <div class="overlay-subtitle">Procedural Multijugador — 9 Hoyos</div>
-      <button class="btn btn-primary" style="margin-bottom:10px" onclick="showScreen('screenHost')">🏠 Crear Partida</button>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Número de jugadores</div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <button class="btn btn-secondary player-count-btn" id="pcBtn2" onclick="setPlayerCount(2)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">2</button>
+          <button class="btn btn-secondary player-count-btn" id="pcBtn3" onclick="setPlayerCount(3)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">3</button>
+          <button class="btn btn-secondary player-count-btn" id="pcBtn4" onclick="setPlayerCount(4)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">4</button>
+        </div>
+      </div>
+
+      <div id="playerNamesContainer" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px;"></div>
+
+      <button class="btn btn-primary" style="margin-bottom:10px" onclick="startLocalGameWithNames()">🏌 Jugar Local</button>
+      <button class="btn btn-primary" style="margin-bottom:10px;background:linear-gradient(135deg,#5096ff,#1a4acc);box-shadow:0 4px 20px rgba(80,150,255,0.4)" onclick="showScreen('screenHost')">🏠 Crear Partida Online</button>
       <button class="btn btn-primary" style="margin-bottom:10px;background:linear-gradient(135deg,#5096ff,#1a4acc);box-shadow:0 4px 20px rgba(80,150,255,0.4)" onclick="showScreen('screenJoin')">🔗 Unirse a Partida</button>
       <button class="btn btn-secondary" onclick="startLocalGame(true)">🤖 Modo Demo (IA)</button>
-      <div style="margin-top:18px;font-size:11px;color:rgba(255,255,255,0.35);">
+      <div style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">
         Arrastra desde la pelota para apuntar y soltar para golpear.
       </div>
     </div>
@@ -326,6 +372,18 @@ const FRICTION_SAND = 0.94;
 const ELASTICITY = 0.65;
 const BUMPER_ELASTICITY = 1.4;
 const WATER_CHECK_INTERVAL = 200;
+
+// Paleta de jugadores (hasta 4)
+const PLAYER_COLORS = [
+  { base: '#ef5350', light: '#ff8a80', dark: '#b71c1c', hud: '#ff5050', hudBg: '255,80,80', emoji: '🔴' },
+  { base: '#42a5f5', light: '#82d3ff', dark: '#0d47a1', hud: '#5096ff', hudBg: '80,150,255', emoji: '🔵' },
+  { base: '#66bb6a', light: '#a5d6a7', dark: '#1b5e20', hud: '#50dc78', hudBg: '80,220,120', emoji: '🟢' },
+  { base: '#ffca28', light: '#fff176', dark: '#f57f17', hud: '#ffc832', hudBg: '255,200,50', emoji: '🟡' },
+];
+
+// Nombres y conteo de jugadores
+let playerNames = ['Jugador 1', 'Jugador 2', 'Jugador 3', 'Jugador 4'];
+let numPlayers = 2;
 
 // ═══════════════════════════════════════════════════════
 //  GENERADOR DE MAPAS PROCEDUALES
@@ -478,18 +536,73 @@ function generateHole(holeNum, rng) {
     }
   }
 
-  // Calcular Par
+  // Decoraciones dentro del FAIRWAY (hongos y algunos árboles como obstáculos)
+  const decorations = [];
+  const fairwayArr = [...fairwaySet];
+  const decoOccupied = new Set();
+
+  // Hongos y árboles dentro del césped (obstáculos decorativos)
+  const numFairwayDecos = rng.int(2, 4 + Math.floor(difficulty * 4));
+  for (let i = 0; i < numFairwayDecos && fairwayArr.length > 0; i++) {
+    const key = fairwayArr[rng.int(0, fairwayArr.length - 1)];
+    if (decoOccupied.has(key)) continue;
+    const [fr, fc] = key.split(',').map(Number);
+    if (Math.abs(fc - startX) < 3 && Math.abs(fr - startY) < 3) continue;
+    if (Math.abs(fc - endX) < 3 && Math.abs(fr - endY) < 3) continue;
+    const type = rng.next() > 0.5 ? 'mushroom' : 'tree';
+    const wx = fc * TILE + TILE / 2 + rng.range(-8, 8);
+    const wy = fr * TILE + TILE / 2 + rng.range(-8, 8);
+    decorations.push({ type, x: wx, y: wy, inFairway: true });
+    decoOccupied.add(key);
+    decoOccupied.add(`${fr-1},${fc}`); decoOccupied.add(`${fr+1},${fc}`);
+    decoOccupied.add(`${fr},${fc-1}`); decoOccupied.add(`${fr},${fc+1}`);
+  }
+
+  // Árboles del ROUGH — llenar tiles W con árboles densos
+  const roughTrees = [];
+  for (let r2 = 0; r2 < ROWS; r2++) {
+    for (let c2 = 0; c2 < COLS; c2++) {
+      if (grid[r2][c2] !== 'W') continue;
+      // Densidad: ~1 árbol cada 1.5 tiles usando pseudo-random determinista
+      const chance = ((r2 * 7 + c2 * 13 + inputSeed) % 100) / 100;
+      if (chance > 0.65) continue;
+      const wx = c2 * TILE + TILE / 2 + ((r2 * 3 + c2 * 7) % 16) - 8;
+      const wy = r2 * TILE + TILE / 2 + ((r2 * 5 + c2 * 11) % 16) - 8;
+      // Alternar hongos y árboles (mayoritariamente árboles en el rough)
+      const type = ((r2 * 11 + c2 * 17) % 5) === 0 ? 'mushroom' : 'tree';
+      roughTrees.push({ type, x: wx, y: wy, inFairway: false });
+    }
+  }
+
+  // Molino — aparece aleatoriamente (~40% de probabilidad)
+  // Se coloca EXACTAMENTE donde estaría la bandera (endX, endY)
+  let windmill = null;
+  if (rng.next() < 0.4) {
+    const wx2 = endX * TILE + TILE / 2;
+    const wy2 = endY * TILE + TILE / 2;
+    windmill = {
+      x: wx2, y: wy2,
+      sprW: 164, sprH: 192,
+      doorX: wx2,
+      doorY: wy2 + 62,
+      doorR: 18,
+      bladeAngle: 0,
+      bladeSpeed: 0.008 + rng.next() * 0.012,
+    };
+  }
+
   const distPath = path.length;
   let par = 3;
   if (distPath > 12) par = 4;
   if (distPath > 18 || numWater > 1 || bumpers.length > 3) par = 5;
   if (difficulty < 0.2 && distPath < 8) par = 2;
+  if (windmill) par++; // El molino añade complejidad
 
   // Posición mundo de inicio y fin
   const startWorld = { x: startX * TILE + TILE/2, y: startY * TILE + TILE/2 };
   const endWorld = { x: endX * TILE + TILE/2, y: endY * TILE + TILE/2 };
 
-  return { grid, bumpers, par, startWorld, endWorld, waterZones, sandZones, path };
+  return { grid, bumpers, par, startWorld, endWorld, waterZones, sandZones, path, decorations, roughTrees, windmill };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -511,6 +624,74 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let W, H, offsetX = 0, offsetY = 60;
 
+// ─── SPRITES ─────────────────────────────────────────
+const sprMushroom = new Image();
+sprMushroom.src = 'https://i.postimg.cc/nHtG5pPm/68-sin-titulo-20260607045208.png';
+sprMushroom.onload = () => { if (holeData) drawFrame(); };
+const sprTree = new Image();
+sprTree.src = 'https://i.postimg.cc/fDpKcx7G/67-sin-titulo-20260607044822.png';
+sprTree.onload = () => { if (holeData) drawFrame(); };
+const sprWindmill = new Image();
+sprWindmill.src = 'https://i.postimg.cc/vTP17dxf/69-sin-titulo-20260607133609.png';
+sprWindmill.onload = () => { if (holeData) drawFrame(); };
+
+// Radios de colisión para decoraciones
+const DECO_COLLIDERS = {
+  mushroom: 14,
+  tree:     10,
+};
+
+// ─── ESTADO DEL MOLINO ───────────────────────────────
+// El molino puede aparecer en un hoyo aleatorio (probabilidad 40% por hoyo)
+// Cuando aparece, tiene una puerta. Al entrar todos los jugadores, se carga
+// un sub-nivel "interior del molino".
+let windmillState = null;
+// windmillState = { x, y, doorX, doorY, doorR, bladeAngle, bladeSpeed,
+//                   playersInside: Set, subLevel: null }
+// subLevel = holeData del interior (generado especialmente)
+
+// ─── INTERIOR DEL MOLINO ─────────────────────────────
+// Genera un mapa pequeño de "adentro del molino" con piso de madera
+function generateWindmillInterior(seed) {
+  // Mapa más pequeño: 14 cols x 10 rows, escala 1:1 (el jugador es miniatura)
+  const IC = 14, IR = 10;
+  const grid = [];
+  for (let r = 0; r < IR; r++) {
+    grid.push([]);
+    for (let c = 0; c < IC; c++) {
+      // Paredes perimetrales
+      if (r === 0 || r === IR-1 || c === 0 || c === IC-1) grid[r].push('MW'); // Madera-Pared
+      else grid[r].push('MF'); // Madera-Piso
+    }
+  }
+  // Algunos obstáculos internos (cajas, barriles)
+  const rng2 = new SeededRandom(seed);
+  const obstacles = [];
+  for (let i = 0; i < 3; i++) {
+    const oc = rng2.int(2, IC-3), or2 = rng2.int(2, IR-3);
+    grid[or2][oc] = 'MB'; // Madera-Barril
+    obstacles.push({c: oc, r: or2});
+  }
+  // Entrada: en el borde inferior centro
+  const entryC = Math.floor(IC/2);
+  grid[IR-1][entryC] = 'ME'; // Entrada
+  // Fin (bandera): parte superior centro
+  const flagC = Math.floor(IC/2);
+  const flagR = 1;
+
+  const startWorld = { x: entryC * TILE + TILE/2, y: (IR-2) * TILE + TILE/2 };
+  const endWorld   = { x: flagC  * TILE + TILE/2, y: flagR  * TILE + TILE/2 };
+  return {
+    grid, IC, IR, obstacles,
+    startWorld, endWorld,
+    par: 2,
+    bumpers: [],
+    waterZones: [], sandZones: [],
+    decorations: [], roughTrees: [],
+    isWindmillInterior: true
+  };
+}
+
 function resize() {
   W = window.innerWidth;
   H = window.innerHeight;
@@ -529,6 +710,7 @@ function createBall(x, y, pid) {
 }
 
 function getBallFriction(ball) {
+  if (holeData.isWindmillInterior) return FRICTION_GRASS * 0.99; // madera, poco rozamiento
   const c = Math.floor(ball.x / TILE);
   const r = Math.floor(ball.y / TILE);
   if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
@@ -540,6 +722,13 @@ function getBallFriction(ball) {
 }
 
 function tileAt(x, y) {
+  if (holeData.isWindmillInterior) {
+    const c = Math.floor(x / TILE);
+    const r = Math.floor(y / TILE);
+    if (r < 0 || r >= holeData.IR || c < 0 || c >= holeData.IC) return 'MW';
+    const t = holeData.grid[r][c];
+    return (t === 'MW' || t === 'MB') ? 'W' : 'G'; // tratar pared/barril como W, resto como G
+  }
   const c = Math.floor(x / TILE);
   const r = Math.floor(y / TILE);
   if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return 'W';
@@ -599,7 +788,50 @@ function stepBall(ball) {
         break;
       }
     }
-  }
+
+    // Colisión entre bolas
+    if (state) {
+      for (const other of state.balls) {
+        if (other === ball || other.holed || other.sinking) continue;
+        const dx2 = ball.x - other.x, dy2 = ball.y - other.y;
+        const dist2 = Math.hypot(dx2, dy2);
+        if (dist2 < BALL_R * 2 && dist2 > 0.001) {
+          const nx3 = dx2 / dist2, ny3 = dy2 / dist2;
+          // Intercambiar componentes de velocidad a lo largo de la normal (colisión elástica masas iguales)
+          const p = ball.vx * nx3 + ball.vy * ny3 - (other.vx * nx3 + other.vy * ny3);
+          ball.vx -= p * nx3;
+          ball.vy -= p * ny3;
+          other.vx += p * nx3;
+          other.vy += p * ny3;
+          // Separar bolas para evitar solapamiento
+          const overlap = BALL_R * 2 - dist2;
+          ball.x += nx3 * overlap * 0.5;
+          ball.y += ny3 * overlap * 0.5;
+          other.x -= nx3 * overlap * 0.5;
+          other.y -= ny3 * overlap * 0.5;
+        }
+      }
+    }
+    // Colisión con decoraciones del fairway (no con el rough)
+    if (holeData && holeData.decorations) {
+      for (const deco of holeData.decorations) {
+        const cr = DECO_COLLIDERS[deco.type] || 14;
+        const collY = deco.type === 'tree' ? deco.y + 44 : deco.y;
+        const ddx = ball.x - deco.x, ddy = ball.y - collY;
+        const ddist = Math.hypot(ddx, ddy);
+        if (ddist < BALL_R + cr && ddist > 0.001) {
+          const nx4 = ddx / ddist, ny4 = ddy / ddist;
+          const dot2 = ball.vx * nx4 + ball.vy * ny4;
+          if (dot2 < 0) {
+            ball.vx = (ball.vx - 2 * dot2 * nx4) * ELASTICITY;
+            ball.vy = (ball.vy - 2 * dot2 * ny4) * ELASTICITY;
+            ball.x = deco.x + (BALL_R + cr + 1) * nx4;
+            ball.y = collY + (BALL_R + cr + 1) * ny4;
+          }
+        }
+      }
+    }
+  } // fin for steps
 
   // Trail
   ball.trail.push({x: ball.x, y: ball.y, speed: Math.hypot(ball.vx, ball.vy)});
@@ -613,12 +845,34 @@ function stepBall(ball) {
     ball.vx = 0; ball.vy = 0;
   }
 
-  // Hoyo
-  if (!ball.sinking) {
+  // Puerta del molino — detección durante el movimiento
+  if (!holeData.isWindmillInterior && holeData.windmill && !ball.insideWindmill) {
+    const wm = holeData.windmill;
+    const ddx = ball.x - wm.doorX, ddy = ball.y - wm.doorY;
+    if (Math.hypot(ddx, ddy) < wm.doorR + BALL_R) {
+      ball.insideWindmill = true;
+      ball.holed = true; // marcamos holed para que el game loop lo detecte
+      ball.vx = 0; ball.vy = 0;
+      ball._enteredWindmill = true; // flag especial para distinguir de hoyo normal
+    }
+  }
+
+  // Hoyo — solo si no hay molino en este nivel
+  if (!ball.sinking && !holeData.windmill) {
     const dx = ball.x - holeData.endWorld.x;
     const dy = ball.y - holeData.endWorld.y;
     const dist = Math.hypot(dx, dy);
     if (dist < HOLE_R - 2 && Math.hypot(ball.vx, ball.vy) < 4) {
+      ball.holed = true;
+      ball.vx = 0; ball.vy = 0;
+    }
+  }
+
+  // Hoyo interior del molino
+  if (holeData.isWindmillInterior && !ball.sinking) {
+    const dx = ball.x - holeData.endWorld.x;
+    const dy = ball.y - holeData.endWorld.y;
+    if (Math.hypot(dx, dy) < HOLE_R - 2 && Math.hypot(ball.vx, ball.vy) < 4) {
       ball.holed = true;
       ball.vx = 0; ball.vy = 0;
     }
@@ -655,21 +909,24 @@ function drawTile(ctx, r, c, type) {
       break;
     }
     case 'W': {
-      // Pared con relieve
-      const grd = ctx.createLinearGradient(sx, sy, sx, sy + TILE);
-      grd.addColorStop(0, '#f5f5f5');
-      grd.addColorStop(0.4, '#e0e0e0');
-      grd.addColorStop(1, '#9e9e9e');
-      ctx.fillStyle = grd;
+      // Rough — pasto oscuro y denso fuera de la cancha
+      const even = (r + c) % 2 === 0;
+      ctx.fillStyle = even ? '#1b5e20' : '#154a19';
       ctx.fillRect(sx, sy, TILE, TILE);
-      // Sombra interior
-      ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.fillRect(sx, sy + TILE - 6, TILE, 6);
-      ctx.fillRect(sx + TILE - 6, sy, 6, TILE);
-      // Highlight
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.fillRect(sx, sy, TILE, 4);
-      ctx.fillRect(sx, sy, 4, TILE);
+      // Textura de pasto largo (líneas verticales tenues)
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1;
+      for (let g = 0; g < 5; g++) {
+        const gx = sx + ((c * 7 + g * 8) % TILE);
+        ctx.beginPath();
+        ctx.moveTo(gx, sy);
+        ctx.lineTo(gx + 1, sy + TILE);
+        ctx.stroke();
+      }
+      // Borde sutil donde toca el fairway
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.fillRect(sx, sy, TILE, 2);
+      ctx.fillRect(sx, sy, 2, TILE);
       break;
     }
     case 'L': {
@@ -832,11 +1089,7 @@ function drawBall(ctx, ball) {
   ctx.fill();
 
   // Color por jugador
-  const colors = [
-    {base: '#ef5350', light: '#ff8a80', dark: '#b71c1c'},
-    {base: '#42a5f5', light: '#82d3ff', dark: '#0d47a1'}
-  ];
-  const col = colors[ball.pid];
+  const col = PLAYER_COLORS[ball.pid % PLAYER_COLORS.length];
 
   // Cuerpo
   const grd = ctx.createRadialGradient(sx - BALL_R*0.3, sy - BALL_R*0.3, BALL_R*0.1*scale, sx, sy, BALL_R*scale*1.1);
@@ -919,6 +1172,61 @@ function updateCamera() {
   if (offsetY > 60) offsetY = 60;
 }
 
+function drawDecorations(ctx, roughOnly) {
+  if (!holeData) return;
+  const list = roughOnly ? (holeData.roughTrees || []) : (holeData.decorations || []);
+  if (list.length === 0) return;
+  const sorted = roughOnly ? list : [...list].sort((a, b) => a.y - b.y);
+
+  for (const deco of sorted) {
+    const {sx, sy} = worldToScreen(deco.x, deco.y);
+    if (sx < -80 || sx > W + 80 || sy < -150 || sy > H + 20) continue;
+
+    // Transparencia si alguna pelota está detrás del árbol
+    let alpha = 1;
+    if (deco.type === 'tree' && state) {
+      for (const ball of state.balls) {
+        if (ball.holed) continue;
+        // "Detrás" = bola está más arriba (menor Y mundo) que la base del árbol
+        // y horizontalmente cerca
+        const treeBaseY = deco.y + 10; // base del tronco
+        const treeCupY  = deco.y - 80; // copa
+        const dx = ball.x - deco.x;
+        const dy = ball.y - treeBaseY;
+        // La pelota está detrás si su Y está entre la copa y la base, y X cerca
+        if (ball.y < treeBaseY && ball.y > treeCupY && Math.abs(dx) < 38) {
+          alpha = 0.35;
+          break;
+        }
+      }
+    }
+
+    ctx.save();
+    if (alpha < 1) ctx.globalAlpha = alpha;
+
+    if (deco.type === 'mushroom') {
+      if (sprMushroom.complete && sprMushroom.naturalWidth > 0) {
+        ctx.drawImage(sprMushroom, sx - 16, sy - 16, 32, 32);
+      } else {
+        ctx.fillStyle = '#e53935';
+        ctx.beginPath(); ctx.arc(sx, sy - 6, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(sx, sy + 6, 8, 0, Math.PI * 2); ctx.fill();
+      }
+    } else {
+      if (sprTree.complete && sprTree.naturalWidth > 0) {
+        ctx.drawImage(sprTree, sx - 32, sy - 96, 64, 128);
+      } else {
+        ctx.fillStyle = '#5d4037'; ctx.fillRect(sx - 6, sy, 12, 40);
+        ctx.fillStyle = '#2e7d32';
+        ctx.beginPath(); ctx.arc(sx, sy - 20, 28, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
+}
+
 function drawFrame() {
   ctx.clearRect(0, 0, W, H);
 
@@ -933,47 +1241,267 @@ function drawFrame() {
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
   ctx.fillRect(ms.sx + 8, ms.sy + 8, COLS * TILE, ROWS * TILE);
 
-  // Tiles
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      drawTile(ctx, r, c, holeData.grid[r][c]);
+  if (holeData.isWindmillInterior) {
+    // ── INTERIOR DEL MOLINO ──
+    // Fondo de madera oscura
+    ctx.fillStyle = '#3e2723';
+    ctx.fillRect(0, 0, W, H);
+
+    const idata = holeData;
+    for (let r = 0; r < idata.IR; r++) {
+      for (let c = 0; c < idata.IC; c++) {
+        drawInteriorTile(ctx, r, c, idata.grid[r][c]);
+      }
     }
-  }
 
-  // Posición inicio
-  const {sx: isx, sy: isy} = worldToScreen(holeData.startWorld.x, holeData.startWorld.y);
-  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath();
-  ctx.arc(isx, isy, 14, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('TEE', isx, isy + 4);
+    // Decoraciones de interior: engranajes, telarañas, ventanas
+    drawInteriorDecorations(ctx, idata);
 
-  drawHole(ctx);
+    // Bandera de salida dentro del molino
+    drawHole(ctx);
 
-  for (const b of holeData.bumpers) drawBumper(ctx, b);
+    // Bumpers (barriles colisionables)
+    for (const b of holeData.bumpers) drawBumper(ctx, b);
 
-  // Línea de apuntado
-  if (state && state.aiming && !state.animating && !state.balls[state.currentPlayer].sinking) {
-    drawAimLine(state.balls[state.currentPlayer], state.mouseX, state.mouseY);
-  }
+    // Línea de apuntado
+    if (state && state.aiming && !state.animating && state.balls[state.currentPlayer] && !state.balls[state.currentPlayer].sinking) {
+      drawAimLine(state.balls[state.currentPlayer], state.mouseX, state.mouseY);
+    }
 
-  // Pelotas
-  if (state) {
-    for (const ball of state.balls) drawBall(ctx, ball);
+    // Pelotas
+    if (state) for (const ball of state.balls) drawBall(ctx, ball);
+
+    // HUD interior
+    ctx.fillStyle = 'rgba(62,39,35,0.85)';
+    ctx.fillRect(W/2 - 120, H - 48, 240, 36);
+    ctx.fillStyle = '#ffcc80';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏠 Interior del Molino — ¡Eres muy pequeño!', W/2, H - 26);
+
+    // Esperar jugadores
+    if (windmillState && windmillState.waitingForPlayers) {
+      const inside = windmillState.playersInside.size;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(W/2 - 140, H/2 - 30, 280, 60);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText(`⏳ Esperando jugadores... ${inside}/${numPlayers}`, W/2, H/2 + 6);
+    }
+
+  } else {
+    // ── EXTERIOR NORMAL ──
+    // Tiles
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        drawTile(ctx, r, c, holeData.grid[r][c]);
+      }
+    }
+
+    // Posición inicio
+    const {sx: isx, sy: isy} = worldToScreen(holeData.startWorld.x, holeData.startWorld.y);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(isx, isy, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('TEE', isx, isy + 4);
+
+    // Solo dibujar el hoyo/bandera si NO hay molino en este nivel
+    if (!holeData.windmill) {
+      drawHole(ctx);
+    }
+    for (const b of holeData.bumpers) drawBumper(ctx, b);
+
+    // Línea de apuntado
+    if (state && state.aiming && !state.animating && state.balls[state.currentPlayer] && !state.balls[state.currentPlayer].sinking) {
+      drawAimLine(state.balls[state.currentPlayer], state.mouseX, state.mouseY);
+    }
+
+    // Pelotas (debajo de los árboles)
+    if (state) for (const ball of state.balls) drawBall(ctx, ball);
+
+    // Molino
+    drawWindmill(ctx);
+
+    // Árboles y hongos ENCIMA de las bolas
+    drawDecorations(ctx, true);
+    drawDecorations(ctx, false);
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  LOOP PRINCIPAL
-// ═══════════════════════════════════════════════════════
+// ─── INTERIOR DEL MOLINO ──────────────────────────────
+function drawInteriorTile(ctx, r, c, type) {
+  const {sx, sy} = worldToScreen(c * TILE, r * TILE);
+  switch(type) {
+    case 'MF': { // Piso de madera
+      const plank = (r % 3 === 0) ? '#8d6e63' : (r % 3 === 1) ? '#795548' : '#6d4c41';
+      ctx.fillStyle = plank;
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Vetas de madera horizontales
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sx, sy + TILE*0.33); ctx.lineTo(sx+TILE, sy + TILE*0.33); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx, sy + TILE*0.66); ctx.lineTo(sx+TILE, sy + TILE*0.66); ctx.stroke();
+      // Junta entre tablones (offset alternado)
+      const jx = sx + ((c % 2 === 0) ? TILE/2 : 0);
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.fillRect(jx - 1, sy, 2, TILE);
+      break;
+    }
+    case 'MW': { // Pared de madera (ladrillos)
+      ctx.fillStyle = '#4e342e';
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Patrón ladrillo
+      ctx.fillStyle = '#3e2723';
+      const bRow = Math.floor(r);
+      for (let bx = 0; bx < 2; bx++) {
+        const boff = (bRow % 2 === 0) ? 0 : TILE/2;
+        ctx.fillRect(sx + boff + bx * TILE - (bx>0?TILE:0), sy + 2, TILE/2 - 2, TILE/2 - 2);
+        ctx.fillRect(sx + boff + bx * TILE - (bx>0?TILE:0), sy + TILE/2 + 2, TILE/2 - 2, TILE/2 - 2);
+      }
+      break;
+    }
+    case 'MB': { // Barril obstáculo
+      ctx.fillStyle = '#795548';
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Barril circular
+      ctx.fillStyle = '#5d4037';
+      ctx.beginPath(); ctx.arc(sx+TILE/2, sy+TILE/2, TILE/2-4, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sx+TILE/2, sy+TILE/2, TILE/2-4, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx+4, sy+TILE/2); ctx.lineTo(sx+TILE-4, sy+TILE/2);
+      ctx.moveTo(sx+TILE/2, sy+4); ctx.lineTo(sx+TILE/2, sy+TILE-4);
+      ctx.strokeStyle = '#6d4c41'; ctx.stroke();
+      break;
+    }
+    case 'ME': { // Entrada (puerta)
+      ctx.fillStyle = '#8d6e63';
+      ctx.fillRect(sx, sy, TILE, TILE);
+      // Arco de puerta
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath();
+      ctx.arc(sx+TILE/2, sy+TILE, TILE/2-2, Math.PI, 0);
+      ctx.fill();
+      // Luz del portal
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#7eff47';
+      ctx.beginPath(); ctx.arc(sx+TILE/2, sy+TILE, TILE/2-4, Math.PI, 0); ctx.fill();
+      ctx.restore();
+      break;
+    }
+  }
+}
+
+function drawInteriorDecorations(ctx, idata) {
+  const t = Date.now() * 0.001;
+  // Ventana en pared superior — círculo con luz
+  const {sx: wx, sy: wy} = worldToScreen(idata.IC * TILE / 2, 0);
+  ctx.save();
+  ctx.globalAlpha = 0.5 + 0.1 * Math.sin(t);
+  const wg = ctx.createRadialGradient(wx, wy + TILE/2, 2, wx, wy + TILE/2, TILE);
+  wg.addColorStop(0, '#fffde7');
+  wg.addColorStop(1, 'rgba(255,253,231,0)');
+  ctx.fillStyle = wg;
+  ctx.beginPath(); ctx.arc(wx, wy + TILE/2, TILE, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // Engranaje girando en esquinas
+  for (const [gr, gc] of [[1,1],[1,idata.IC-2]]) {
+    const {sx: gx, sy: gy} = worldToScreen(gc*TILE + TILE/2, gr*TILE + TILE/2);
+    ctx.save();
+    ctx.translate(gx, gy);
+    ctx.rotate(t * 0.8);
+    ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.stroke();
+    for (let tooth = 0; tooth < 8; tooth++) {
+      ctx.save(); ctx.rotate(tooth * Math.PI/4);
+      ctx.fillStyle = '#795548';
+      ctx.fillRect(-2, -14, 4, 6);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  // Telarañas en esquinas
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 0.8;
+  for (const [cr, cc] of [[1,1],[1,idata.IC-2]]) {
+    const {sx: spx, sy: spy} = worldToScreen(cc*TILE, cr*TILE);
+    for (let si = 0; si < 4; si++) {
+      ctx.beginPath();
+      ctx.moveTo(spx + (cc===1?0:TILE), spy);
+      ctx.lineTo(spx + (cc===1?si*8:TILE-si*8), spy + si * 8);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawWindmill(ctx) {
+  if (!holeData || !holeData.windmill) return;
+  const wm = holeData.windmill;
+  const {sx, sy} = worldToScreen(wm.x, wm.y);
+
+  // Dibujar PRIMERO las aspas (detrás del cuerpo del molino)
+  const bladeLen = 52;
+  const bladeCX = sx;
+  const bladeCY = sy - 68; // centro de aspas en la parte alta del sprite
+  ctx.save();
+  ctx.translate(bladeCX, bladeCY);
+  ctx.rotate(wm.bladeAngle);
+  for (let i = 0; i < 4; i++) {
+    ctx.save();
+    ctx.rotate(i * Math.PI / 2);
+    ctx.fillStyle = '#8d6e63';
+    ctx.strokeStyle = '#5d4037';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(-5, -bladeLen, 10, bladeLen * 0.85);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // Sprite del molino: 164x192, anclado centro-x, base en sy + sprH/2
+  if (sprWindmill.complete && sprWindmill.naturalWidth > 0) {
+    ctx.drawImage(sprWindmill, sx - wm.sprW/2, sy - wm.sprH/2, wm.sprW, wm.sprH);
+  } else {
+    ctx.fillStyle = '#8d6e63';
+    ctx.fillRect(sx - 40, sy - 80, 80, 120);
+    ctx.fillStyle = '#bcaaa4';
+    ctx.beginPath(); ctx.arc(sx, sy - 80, 35, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Luz pulsante en la puerta
+  const t = Date.now() * 0.003;
+  const glow = 0.25 + 0.2 * Math.sin(t);
+  const {sx: dx, sy: dy} = worldToScreen(wm.doorX, wm.doorY);
+  ctx.save();
+  ctx.globalAlpha = glow;
+  ctx.fillStyle = '#7eff47';
+  ctx.beginPath();
+  ctx.arc(dx, dy, wm.doorR, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // Debug: descomentar para ver la hitbox de la puerta
+  // ctx.strokeStyle = 'red'; ctx.lineWidth = 2;
+  // ctx.beginPath(); ctx.arc(dx, dy, wm.doorR + BALL_R, 0, Math.PI*2); ctx.stroke();
+}
+
+
 let lastTime = 0;
 function gameLoop(ts) {
   const dt = Math.min((ts - lastTime) / 1000, 0.05);
@@ -1007,13 +1535,24 @@ function gameLoop(ts) {
       if (!anyMoving) {
         state.animating = false;
         const ball = state.balls[state.currentPlayer];
-        // Sincronización de posición
-        if (ball.holed) {
+
+        // ── Pelota entró al molino (detectado en stepBall) ──
+        if (ball._enteredWindmill) {
+          ball._enteredWindmill = false;
+          ball.holed = false;
+          enterWindmill(ball);
+          // NO hacer return — dejar que el loop continúe con drawFrame y rAF
+        } else if (ball.holed) {
           onBallHoled();
         } else {
           nextTurn();
         }
       }
+    }
+
+    // Rotar aspas del molino
+    if (holeData && holeData.windmill) {
+      holeData.windmill.bladeAngle += holeData.windmill.bladeSpeed;
     }
 
     // Demo IA
@@ -1041,17 +1580,22 @@ function startGame(demo = false) {
 function loadHole(num) {
   const rng = new SeededRandom(inputSeed + num * 997);
   holeData = generateHole(num, rng);
-  state.shots = [0, 0];
+  state.shots = Array(numPlayers).fill(0);
   state.animating = false;
   state.aiming = false;
   state.currentPlayer = 0;
 
-  state.balls = [
-    createBall(holeData.startWorld.x - 8, holeData.startWorld.y, 0),
-    createBall(holeData.startWorld.x + 8, holeData.startWorld.y, 1)
+  // Posicionar bolas alrededor del tee con pequeño offset
+  state.balls = [];
+  const offsets = [
+    {x: -8, y: 0}, {x: 8, y: 0}, {x: 0, y: -8}, {x: 0, y: 8}
   ];
+  for (let i = 0; i < numPlayers; i++) {
+    const off = offsets[i] || {x: (i-1)*10, y: 0};
+    state.balls.push(createBall(holeData.startWorld.x + off.x, holeData.startWorld.y + off.y, i));
+  }
 
-  // Centrar cámara inmediatamente en la posición de inicio
+  // Centrar cámara
   const startBall = state.balls[0];
   offsetX = W / 2 - startBall.x;
   offsetY = H / 2 - startBall.y - 30;
@@ -1064,6 +1608,62 @@ function loadHole(num) {
 
   updateHUD();
   showMessage(`🏌 Hoyo ${num} | Par ${holeData.par}`);
+}
+
+function enterWindmill(ball) {
+  // Marcar que este jugador entró al molino
+  if (!windmillState) {
+    windmillState = {
+      outerHoleData: holeData,    // guardar el mapa exterior
+      outerBalls: state.balls.map(b => ({...b})), // posiciones externas guardadas
+      outerShots: [...state.shots],
+      outerPlayer: state.currentPlayer,
+      playersInside: new Set(),
+      waitingForPlayers: numPlayers > 1,
+    };
+  }
+  windmillState.playersInside.add(ball.pid);
+  ball.insideWindmill = true;
+  showMessage(`🏠 ${playerNames[ball.pid] || 'J'+(ball.pid+1)} entró al molino!`, 2000);
+
+  const allInside = windmillState.playersInside.size >= numPlayers;
+  if (allInside) {
+    loadWindmillInterior();
+  } else {
+    // Esperar al resto — congelar la bola en la puerta
+    ball.vx = 0; ball.vy = 0;
+    ball.x = holeData.windmill.doorX;
+    ball.y = holeData.windmill.doorY;
+    windmillState.waitingForPlayers = true;
+    nextTurn();
+  }
+}
+
+function loadWindmillInterior() {
+  windmillState.waitingForPlayers = false;
+  const interiorSeed = inputSeed + state.holeNum * 7919;
+  holeData = generateWindmillInterior(interiorSeed);
+
+  // Resetear shots solo para este sub-nivel
+  state.shots = Array(numPlayers).fill(0);
+  state.animating = false;
+  state.aiming = false;
+  state.currentPlayer = 0;
+
+  // Colocar bolas en la entrada del interior
+  const offsets = [{x:-8,y:0},{x:8,y:0},{x:0,y:-8},{x:0,y:8}];
+  state.balls = [];
+  for (let i = 0; i < numPlayers; i++) {
+    const off = offsets[i] || {x:0,y:0};
+    state.balls.push(createBall(holeData.startWorld.x + off.x, holeData.startWorld.y + off.y, i));
+  }
+
+  // Centrar cámara en el mapa interior (más pequeño)
+  offsetX = W/2 - holeData.startWorld.x;
+  offsetY = H/2 - holeData.startWorld.y - 30;
+
+  updateHUD();
+  showMessage('⚙️ ¡Estás dentro del molino! Llega a la bandera.', 3000);
 }
 
 function shoot(pid, force, angle) {
@@ -1286,14 +1886,51 @@ function setupConn() {
 }
 
 // ─── MODO LOCAL / DEMO ───────────────────────────────
+function startLocalGameWithNames() {
+  // Leer nombres del menú
+  for (let i = 0; i < numPlayers; i++) {
+    const inp = document.getElementById(`nameInput${i}`);
+    if (inp && inp.value.trim()) playerNames[i] = inp.value.trim();
+  }
+  startLocalGame(false);
+}
+
 function startLocalGame(demo = false) {
   demoMode = demo;
+  if (demo) numPlayers = 2; // Demo siempre 2 jugadores
   myPid = 0;
   isHost = true;
   const seedStr = String(Math.floor(Math.random() * 999999));
   document.getElementById('seedInput') && (document.getElementById('seedInput').value = seedStr);
   inputSeed = hashStr(seedStr) || 1;
   iniciarPartidaReal();
+}
+
+// ─── MENU HELPERS ─────────────────────────────────────
+function setPlayerCount(n) {
+  numPlayers = n;
+  document.querySelectorAll('.player-count-btn').forEach(b => b.style.background = '');
+  const btn = document.getElementById(`pcBtn${n}`);
+  if (btn) btn.style.background = 'rgba(126,255,71,0.25)';
+  renderPlayerNameInputs();
+}
+
+function renderPlayerNameInputs() {
+  const c = document.getElementById('playerNamesContainer');
+  if (!c) return;
+  const defaults = ['Jugador 1','Jugador 2','Jugador 3','Jugador 4'];
+  const emojis = ['🔴','🔵','🟢','🟡'];
+  c.innerHTML = '';
+  for (let i = 0; i < numPlayers; i++) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    row.innerHTML = `<span style="font-size:18px;width:24px;text-align:center">${emojis[i]}</span>
+      <input id="nameInput${i}" type="text" maxlength="16" placeholder="${defaults[i]}"
+        value="${playerNames[i]||defaults[i]}"
+        style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(126,255,71,0.3);
+               border-radius:10px;color:#fff;font-size:14px;padding:8px 12px;outline:none;font-family:inherit;" />`;
+    c.appendChild(row);
+  }
 }
 
 // ─── INICIO DE PARTIDA ───────────────────────────────
@@ -1304,8 +1941,8 @@ function iniciarPartidaReal() {
 
   state = {
     holeNum: 1,
-    scores: [[], []],
-    shots: [0, 0],
+    scores: Array.from({length: numPlayers}, () => []),
+    shots: Array(numPlayers).fill(0),
     balls: [],
     currentPlayer: 0,
     animating: false,
@@ -1316,22 +1953,61 @@ function iniciarPartidaReal() {
     demoTimer: 0
   };
 
+  buildPlayerIndicators();
   loadHole(1);
   requestAnimationFrame(gameLoop);
   netDebugSet(conn && conn.open ? '✅ P2P activo — Seed: ' + inputSeed : '🖥️ Modo local');
 }
 
 function nextTurn() {
-  state.currentPlayer = 1 - state.currentPlayer;
+  // Avanzar al siguiente jugador que aún no metió la bola
+  let next = (state.currentPlayer + 1) % numPlayers;
+  let tries = 0;
+  while (state.balls[next] && state.balls[next].holed && tries < numPlayers) {
+    next = (next + 1) % numPlayers;
+    tries++;
+  }
+  state.currentPlayer = next;
   updatePlayerIndicators();
-  const name = state.currentPlayer === 0 ? '🔴 Jugador 1' : '🔵 Jugador 2';
+  const pc = PLAYER_COLORS[next % PLAYER_COLORS.length];
+  const name = playerNames[next] || `J${next+1}`;
   const esmiTurno = (myPid === state.currentPlayer);
-  showMessage(`🎯 Turno de ${name}${esmiTurno ? ' (tú)' : ''}`);
+  showMessage(`🎯 Turno de ${pc.emoji} ${name}${esmiTurno && conn && conn.open ? ' (tú)' : ''}`);
 }
 
 function onBallHoled() {
   const pid = state.currentPlayer;
   const shots = state.shots[pid];
+
+  // ── Interior del molino ──
+  if (holeData.isWindmillInterior) {
+    state.scores[pid].push(shots);
+    const pc = PLAYER_COLORS[pid % PLAYER_COLORS.length];
+    const diff = shots - holeData.par;
+    let txt = diff <= -2 ? '🦅 EAGLE!' : diff === -1 ? '🐦 BIRDIE!' : diff === 0 ? '👌 PAR!' : diff === 1 ? '😅 BOGEY' : '😤 DOBLE BOGEY+';
+    showMessage(`${pc.emoji} ${playerNames[pid]||'J'+(pid+1)}: ${txt} ⚙️`, 2500);
+
+    const allDone = state.balls.every((b, i) => b.holed || state.scores[i].length === state.holeNum);
+    if (allDone) {
+      // Todos terminaron — limpiar estado molino y avanzar al siguiente hoyo
+      windmillState = null;
+      setTimeout(() => {
+        if (state.holeNum < 9) {
+          state.holeNum++;
+          if (isHost) enviarAlPeer(`HOLE|${state.holeNum}`);
+          loadHole(state.holeNum); // puede ser con o sin molino — sorpresa!
+        } else {
+          endGame();
+        }
+      }, 2000);
+    } else {
+      state.balls[pid].active = false;
+      nextTurn();
+    }
+    updateHUD();
+    return;
+  }
+
   state.scores[pid].push(shots);
 
   const diff = shots - holeData.par;
@@ -1341,14 +2017,16 @@ function onBallHoled() {
   else if (diff === 0) txt = '👌 PAR!';
   else if (diff === 1) txt = '😅 BOGEY';
   else txt = '😤 DOBLE BOGEY+';
-  showMessage(txt, 2500);
 
-  const other = 1 - pid;
-  if (state.balls[other].holed || state.scores[other].length === state.holeNum) {
+  const pc = PLAYER_COLORS[pid % PLAYER_COLORS.length];
+  const name = playerNames[pid] || `J${pid+1}`;
+  showMessage(`${pc.emoji} ${name}: ${txt}`, 2500);
+
+  const allDone = state.balls.every((b, i) => b.holed || state.scores[i].length === state.holeNum);
+  if (allDone) {
     setTimeout(() => {
       if (state.holeNum < 9) {
         state.holeNum++;
-        // Solo el host sincroniza el cambio de hoyo
         if (isHost) enviarAlPeer(`HOLE|${state.holeNum}`);
         loadHole(state.holeNum);
       } else {
@@ -1356,30 +2034,67 @@ function onBallHoled() {
       }
     }, 2000);
   } else {
-    state.currentPlayer = other;
     state.balls[pid].active = false;
-    updatePlayerIndicators();
-    const otherName = other === 0 ? '🔴 J1' : '🔵 J2';
-    showMessage(`${txt} | Ahora ${otherName}${myPid === other ? ' (tú)' : ''}`);
+    nextTurn();
   }
   updateHUD();
 }
 
+function exitWindmill() {
+  // Restaurar mapa exterior y continuar con el hoyo normal
+  if (!windmillState) return;
+  holeData = windmillState.outerHoleData;
+  state.shots = windmillState.outerShots;
+  state.currentPlayer = 0;
+  state.animating = false;
+  state.aiming = false;
+
+  // Colocar bolas afuera del molino (puerta)
+  const wm = holeData.windmill;
+  state.balls = [];
+  const offsets = [{x:-12,y:10},{x:12,y:10},{x:-6,y:18},{x:6,y:18}];
+  for (let i = 0; i < numPlayers; i++) {
+    const off = offsets[i] || {x:0,y:12};
+    const b = createBall(wm.doorX + off.x, wm.doorY + off.y, i);
+    state.balls.push(b);
+  }
+
+  // Centrar cámara en la zona del molino
+  offsetX = W/2 - wm.x;
+  offsetY = H/2 - wm.y - 30;
+
+  windmillState = null;
+  updateHUD();
+  showMessage('🌿 ¡De vuelta en la cancha! Llega al hoyo.', 2500);
+}
+
+
 function endGame() {
   state.gameOver = true;
-  const t0 = state.scores[0].reduce((a, b) => a + b, 0);
-  const t1 = state.scores[1].reduce((a, b) => a + b, 0);
-  const winner = t0 < t1 ? '🔴 Jugador 1' : t1 < t0 ? '🔵 Jugador 2' : null;
+  const totals = state.scores.map(s => s.reduce((a, b) => a + b, 0));
+  const minScore = Math.min(...totals);
+  const winners = totals.map((t, i) => t === minScore ? i : -1).filter(i => i >= 0);
+  const winnerNames = winners.map(i => `${PLAYER_COLORS[i%PLAYER_COLORS.length].emoji} ${playerNames[i]||'J'+(i+1)}`).join(' & ');
+
+  let scoresHtml = '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0;">';
+  for (let i = 0; i < numPlayers; i++) {
+    const pc = PLAYER_COLORS[i % PLAYER_COLORS.length];
+    const isWinner = totals[i] === minScore;
+    scoresHtml += `<div style="text-align:center;${isWinner ? 'transform:scale(1.1)' : 'opacity:0.7'}">
+      <div style="font-size:22px">${pc.emoji}</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:12px">${playerNames[i]||'J'+(i+1)}</div>
+      <div style="color:#fff;font-size:28px;font-weight:900">${totals[i]}</div>
+      ${isWinner ? '<div style="color:#7eff47;font-size:11px;font-weight:700">🏆 GANADOR</div>' : ''}
+    </div>`;
+  }
+  scoresHtml += '</div>';
+
   const ov = document.getElementById('overlay');
   ov.classList.remove('hidden');
   ov.innerHTML = `<div class="overlay-box">
     <div class="overlay-title">⛳ FIN DE PARTIDA</div>
-    <div class="overlay-subtitle">${winner ? winner + ' GANA!' : '¡EMPATE!'}</div>
-    <div style="display:flex;gap:24px;justify-content:center;margin:20px 0;font-size:36px;font-weight:900">
-      <div><div style="color:#ff8888;font-size:14px">J1</div><div style="color:#fff">${t0}</div></div>
-      <div style="color:rgba(255,255,255,0.3);font-size:20px;align-self:center">vs</div>
-      <div><div style="color:#88bbff;font-size:14px">J2</div><div style="color:#fff">${t1}</div></div>
-    </div>
+    <div class="overlay-subtitle">${winners.length > 1 ? '¡EMPATE! ' + winnerNames : winnerNames + ' GANA!'}</div>
+    ${scoresHtml}
     <button class="btn btn-primary" onclick="location.reload()">🔄 Nueva Partida</button>
   </div>`;
 }
@@ -1389,11 +2104,11 @@ function endGame() {
 // ═══════════════════════════════════════════════════════
 function aiShoot() {
   const ball = state.balls[state.currentPlayer];
+  if (!ball || ball.holed) return;
   const hole = holeData.endWorld;
   const dx = hole.x - ball.x, dy = hole.y - ball.y;
   const dist = Math.hypot(dx, dy);
   const angle = Math.atan2(dy, dx);
-  // Añadir algo de ruido
   const noiseAngle = angle + (Math.random() - 0.5) * 0.3;
   const force = Math.min(dist / (TILE * 6), 1) * (0.7 + Math.random() * 0.3);
   shoot(state.currentPlayer, force, noiseAngle);
@@ -1405,33 +2120,49 @@ function aiShoot() {
 function updateHUD() {
   document.getElementById('hudHole').textContent = `${state.holeNum}/9`;
   document.getElementById('hudPar').textContent = holeData.par;
-  document.getElementById('p1shots').textContent = state.shots[0];
-  document.getElementById('p2shots').textContent = state.shots[1];
   updatePlayerIndicators();
   renderScoreCard();
 }
 
+function buildPlayerIndicators() {
+  const container = document.getElementById('playerIndicatorsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < numPlayers; i++) {
+    const pc = PLAYER_COLORS[i % PLAYER_COLORS.length];
+    const div = document.createElement('div');
+    div.className = `player-indicator pc${i}`;
+    div.id = `pind${i}`;
+    div.innerHTML = `${pc.emoji} <span id="pname${i}">${playerNames[i]||'J'+(i+1)}</span>: <span id="pshots${i}">0</span>`;
+    container.appendChild(div);
+  }
+}
+
 function updatePlayerIndicators() {
-  document.getElementById('p1ind').classList.toggle('active', state.currentPlayer === 0);
-  document.getElementById('p2ind').classList.toggle('active', state.currentPlayer === 1);
+  for (let i = 0; i < numPlayers; i++) {
+    const el = document.getElementById(`pind${i}`);
+    if (el) {
+      el.classList.toggle('active', state.currentPlayer === i);
+      const shotsEl = document.getElementById(`pshots${i}`);
+      if (shotsEl) shotsEl.textContent = state.shots[i] || 0;
+    }
+  }
 }
 
 function renderScoreCard() {
   const sc = document.getElementById('scoreCard');
+  const maxHoles = Math.max(...state.scores.map(s => s.length), state.holeNum);
   let html = '';
-  for (let h = 0; h < Math.max(state.scores[0].length, state.scores[1].length, state.holeNum); h++) {
-    const s0 = state.scores[0][h];
-    const s1 = state.scores[1][h];
-    if (s0 !== undefined) {
-      const cl = s0 < holeData.par - 1 ? 'eagle' : s0 < holeData.par ? 'birdie' : s0 === holeData.par ? '' : s0 === holeData.par + 1 ? 'bogey' : 'double-bogey';
-      html += `<div class="score-cell p1 ${cl}">${s0}</div>`;
-    }
-    if (s1 !== undefined) {
-      const cl = s1 < holeData.par - 1 ? 'eagle' : s1 < holeData.par ? 'birdie' : s1 === holeData.par ? '' : s1 === holeData.par + 1 ? 'bogey' : 'double-bogey';
-      html += `<div class="score-cell p2 ${cl}">${s1}</div>`;
+  for (let h = 0; h < maxHoles; h++) {
+    for (let i = 0; i < numPlayers; i++) {
+      const s = state.scores[i][h];
+      if (s !== undefined) {
+        const cl = s < holeData.par - 1 ? 'eagle' : s < holeData.par ? 'birdie' : s === holeData.par ? '' : s === holeData.par + 1 ? 'bogey' : 'double-bogey';
+        html += `<div class="score-cell p${i} ${cl}">${s}</div>`;
+      }
     }
   }
-  sc.innerHTML = html || '<span style="color:rgba(255,255,255,0.3);font-size:11px">Sin puntos aún</span>';
+  sc.innerHTML = html || '<span style="color:rgba(255,255,255,0.3);font-size:10px">Sin pts</span>';
 }
 
 let msgTimer = null;
@@ -1462,9 +2193,8 @@ function getEventPos(e) {
 function isNearBall(mx, my) {
   if (!state || !holeData) return false;
   const ball = state.balls[state.currentPlayer];
-  if (ball.holed) return false;
+  if (!ball || ball.holed) return false;
   const {sx, sy} = worldToScreen(ball.x, ball.y);
-  // Umbral más generoso en móvil (60px)
   const threshold = ('ontouchstart' in window) ? 60 : 30;
   return Math.hypot(mx - sx, my - sy) < threshold;
 }
@@ -1555,6 +2285,8 @@ function randomSeed() {
 window.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('seedInput');
   if (el) el.value = Math.floor(Math.random() * 999999);
+  // Inicializar menú de jugadores
+  setPlayerCount(2);
 });
 </script>
 </body>
