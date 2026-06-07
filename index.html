@@ -43,10 +43,6 @@
     .score-cell { width: 18px; height: 18px; font-size: 9px; }
     #message { font-size: 13px !important; padding: 8px 16px !important; bottom: 50px !important; }
     #powerBar { width: 140px !important; bottom: 6px !important; }
-    .overlay-box { padding: 24px 20px !important; }
-    .overlay-title { font-size: 24px !important; }
-    .player-name-row { flex-direction: column; gap: 8px !important; }
-    .player-name-row input { width: 100% !important; }
   }
   .hud-section {
     display: flex;
@@ -124,85 +120,264 @@
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.82);
+    background: rgba(0,0,0,0.88);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 200;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    padding: 12px;
   }
   #overlay.hidden { display: none; }
   .overlay-box {
-    background: linear-gradient(135deg, #1e3a2f, #0d2218);
-    border: 2px solid rgba(126,255,71,0.4);
-    border-radius: 20px;
-    padding: 28px 32px;
+    background: linear-gradient(160deg, #1a3828 0%, #0c1e12 100%);
+    border: 1.5px solid rgba(126,255,71,0.3);
+    border-radius: 24px;
+    padding: 24px 20px 20px;
     text-align: center;
     color: white;
-    max-width: 480px;
-    width: 92%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(126,255,71,0.1);
-    max-height: 92vh;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7), 0 0 48px rgba(126,255,71,0.07);
+    max-height: 94dvh;
     overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .menu-logo {
+    font-size: 52px;
+    line-height: 1;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 0 16px rgba(126,255,71,0.4));
   }
   .overlay-title {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 900;
     color: #7eff47;
-    margin-bottom: 8px;
-    text-shadow: 0 0 20px rgba(126,255,71,0.5);
-    letter-spacing: -1px;
+    margin-bottom: 2px;
+    text-shadow: 0 0 24px rgba(126,255,71,0.5);
+    letter-spacing: -0.5px;
+    line-height: 1;
   }
   .overlay-subtitle {
-    font-size: 14px;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 24px;
-  }
-  .seed-row {
-    display: flex;
-    gap: 10px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
     margin-bottom: 20px;
+    letter-spacing: 0.5px;
   }
-  .seed-row input {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(126,255,71,0.3);
-    border-radius: 10px;
-    color: #7eff47;
-    font-size: 15px;
-    padding: 10px 14px;
-    outline: none;
-    font-family: monospace;
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 8px;
+    text-align: left;
   }
-  .seed-row input::placeholder { color: rgba(126,255,71,0.35); }
-  .btn {
-    padding: 12px 28px;
-    border: none;
+  .player-count-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pc-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.12);
     border-radius: 12px;
+    color: rgba(255,255,255,0.5);
+    font-size: 15px;
+    font-weight: 800;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pc-btn .pc-emoji { font-size: 18px; }
+  .pc-btn .pc-num { font-size: 10px; color: rgba(255,255,255,0.25); font-weight: 600; }
+  .pc-btn.active {
+    background: rgba(126,255,71,0.15);
+    border-color: #7eff47;
+    color: #7eff47;
+    box-shadow: 0 0 12px rgba(126,255,71,0.2);
+  }
+  .pc-btn.active .pc-num { color: rgba(126,255,71,0.55); }
+  .name-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 9px 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .name-input-row:focus-within { border-color: rgba(126,255,71,0.4); }
+  .name-input-row .ni-emoji { font-size: 20px; flex-shrink: 0; }
+  .name-input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    font-family: inherit;
+    min-width: 0;
+  }
+  .name-input-row input::placeholder { color: rgba(255,255,255,0.22); font-weight: 400; }
+  .btn {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 14px;
     font-size: 15px;
     font-weight: 800;
     cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    transition: all 0.18s;
+    letter-spacing: 0.3px;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
   }
+  .btn:active { transform: scale(0.97); }
+  .btn-local {
+    background: linear-gradient(135deg, #7eff47 0%, #3dcc00 100%);
+    color: #0a2000;
+    font-size: 17px;
+    padding: 17px;
+    box-shadow: 0 4px 20px rgba(126,255,71,0.35);
+    margin-bottom: 10px;
+    font-weight: 900;
+  }
+  .btn-local:hover { box-shadow: 0 6px 28px rgba(126,255,71,0.55); }
+  .btn-online {
+    background: linear-gradient(135deg, #4a7fff 0%, #1a3dcc 100%);
+    color: #fff;
+    font-size: 15px;
+    box-shadow: 0 4px 16px rgba(74,127,255,0.3);
+  }
+  .btn-online:hover { box-shadow: 0 6px 24px rgba(74,127,255,0.5); }
+  .online-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .btn-demo {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.09);
+    font-size: 13px;
+    padding: 11px;
+    font-weight: 700;
+  }
+  .btn-demo:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
   .btn-primary {
     background: linear-gradient(135deg, #7eff47, #3dcc00);
     color: #0a1f00;
-    width: 100%;
-    font-size: 17px;
-    padding: 14px;
+    font-size: 16px;
+    padding: 15px;
     box-shadow: 0 4px 20px rgba(126,255,71,0.4);
+    font-weight: 900;
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(126,255,71,0.6); }
+  .btn-primary:hover { box-shadow: 0 6px 28px rgba(126,255,71,0.6); }
   .btn-secondary {
-    background: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.2);
-    margin-top: 10px;
-    width: 100%;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.13);
+    font-size: 14px;
+    padding: 12px;
   }
-  .btn-secondary:hover { background: rgba(255,255,255,0.14); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+  .menu-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 12px;
+    color: rgba(255,255,255,0.2);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  .menu-divider::before, .menu-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+  .screen-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 18px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:active { background: rgba(255,255,255,0.15); }
+  .screen-header-text .overlay-title { font-size: 22px; margin-bottom: 1px; }
+  .screen-header-text .overlay-subtitle { margin-bottom: 0; }
+  .seed-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .seed-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(126,255,71,0.25);
+    border-radius: 12px;
+    color: #7eff47;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    font-family: monospace;
+    min-width: 0;
+  }
+  .seed-row input:focus { border-color: rgba(126,255,71,0.55); }
+  .seed-row input::placeholder { color: rgba(126,255,71,0.3); }
+  .seed-dice {
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.13);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.7);
+    font-size: 20px;
+    width: 48px;
+    min-width: 48px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .seed-dice:active { background: rgba(255,255,255,0.14); }
+  .control-hint {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    line-height: 1.5;
+  }
   #netDebug {
     position: absolute;
     bottom: 8px;
@@ -282,52 +457,99 @@
 
     <!-- PANTALLA 1: Menú principal -->
     <div class="overlay-box" id="screenMenu">
-      <div class="overlay-title">⛳ MINI GOLF</div>
-      <div class="overlay-subtitle">Procedural Multijugador — 9 Hoyos</div>
+      <div class="menu-logo">⛳</div>
+      <div class="overlay-title">MINI GOLF</div>
+      <div class="overlay-subtitle">9 HOYOS PROCEDURALES</div>
 
-      <div style="margin-bottom:16px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Número de jugadores</div>
-        <div style="display:flex;gap:8px;justify-content:center;">
-          <button class="btn btn-secondary player-count-btn" id="pcBtn2" onclick="setPlayerCount(2)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">2</button>
-          <button class="btn btn-secondary player-count-btn" id="pcBtn3" onclick="setPlayerCount(3)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">3</button>
-          <button class="btn btn-secondary player-count-btn" id="pcBtn4" onclick="setPlayerCount(4)" style="padding:8px 16px;font-size:14px;font-weight:800;flex:1">4</button>
-        </div>
+      <div class="section-label">Jugadores</div>
+      <div class="player-count-row">
+        <button class="pc-btn" id="pcBtn2" onclick="setPlayerCount(2)">
+          <span class="pc-emoji">🔴🔵</span>
+          <span class="pc-num">2 jugadores</span>
+        </button>
+        <button class="pc-btn" id="pcBtn3" onclick="setPlayerCount(3)">
+          <span class="pc-emoji">🔴🔵🟢</span>
+          <span class="pc-num">3 jugadores</span>
+        </button>
+        <button class="pc-btn" id="pcBtn4" onclick="setPlayerCount(4)">
+          <span class="pc-emoji">🔴🔵🟢🟡</span>
+          <span class="pc-num">4 jugadores</span>
+        </button>
       </div>
 
-      <div id="playerNamesContainer" style="margin-bottom:16px;display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="section-label">Nombres</div>
+      <div id="playerNamesContainer" style="margin-bottom:18px;"></div>
 
-      <button class="btn btn-primary" style="margin-bottom:10px" onclick="startLocalGameWithNames()">🏌 Jugar Local</button>
-      <button class="btn btn-primary" style="margin-bottom:10px;background:linear-gradient(135deg,#5096ff,#1a4acc);box-shadow:0 4px 20px rgba(80,150,255,0.4)" onclick="showScreen('screenHost')">🏠 Crear Partida Online</button>
-      <button class="btn btn-primary" style="margin-bottom:10px;background:linear-gradient(135deg,#5096ff,#1a4acc);box-shadow:0 4px 20px rgba(80,150,255,0.4)" onclick="showScreen('screenJoin')">🔗 Unirse a Partida</button>
-      <button class="btn btn-secondary" onclick="startLocalGame(true)">🤖 Modo Demo (IA)</button>
-      <div style="margin-top:14px;font-size:11px;color:rgba(255,255,255,0.35);">
-        Arrastra desde la pelota para apuntar y soltar para golpear.
+      <button class="btn btn-local" onclick="startLocalGameWithNames()">
+        🏌 Jugar en este dispositivo
+      </button>
+
+      <div class="menu-divider">MULTIJUGADOR ONLINE</div>
+
+      <div class="online-pair">
+        <button class="btn btn-online" onclick="showScreen('screenHost')">
+          🏠 Crear sala
+        </button>
+        <button class="btn btn-online" onclick="showScreen('screenJoin')">
+          🔗 Unirse
+        </button>
+      </div>
+
+      <button class="btn btn-demo" onclick="startLocalGame(true)">
+        🤖 Ver demo con IA
+      </button>
+
+      <div class="control-hint">
+        👆 Arrastra desde tu pelota · suelta para golpear
       </div>
     </div>
 
     <!-- PANTALLA 2: Crear sala (Host = J1) -->
     <div class="overlay-box hidden" id="screenHost">
-      <div class="overlay-title">🏠 Crear Partida</div>
-      <div class="overlay-subtitle">Eres el <strong style="color:#ff8888">Jugador 1 🔴</strong></div>
-      <div class="seed-row">
-        <input type="text" id="seedInput" placeholder="Semilla (ej: 42069)" maxlength="20"/>
-        <button class="btn btn-secondary" style="width:auto;margin:0" onclick="randomSeed()">🎲</button>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('screenMenu')">←</button>
+        <div class="screen-header-text">
+          <div class="overlay-title">Crear sala</div>
+          <div class="overlay-subtitle">Tú eres <strong style="color:#ff8888">Jugador 1 🔴</strong></div>
+        </div>
       </div>
-      <button class="btn btn-primary" onclick="hostGame()" id="btnHost">📡 Generar código de sala</button>
-      <div id="hostStatus" style="margin-top:16px;min-height:80px;display:flex;flex-direction:column;align-items:center;gap:10px"></div>
-      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu')">← Volver</button>
+
+      <div class="section-label">Semilla del mapa</div>
+      <div class="seed-row">
+        <input type="text" id="seedInput" placeholder="ej: 42069" maxlength="20"/>
+        <button class="seed-dice" onclick="randomSeed()" title="Semilla aleatoria">🎲</button>
+      </div>
+
+      <button class="btn btn-primary" onclick="hostGame()" id="btnHost">
+        📡 Generar código de sala
+      </button>
+      <div id="hostStatus" style="margin-top:16px;min-height:70px;display:flex;flex-direction:column;align-items:center;gap:10px"></div>
     </div>
 
     <!-- PANTALLA 3: Unirse (Guest = J2) -->
     <div class="overlay-box hidden" id="screenJoin">
-      <div class="overlay-title">🔗 Unirse</div>
-      <div class="overlay-subtitle">Eres el <strong style="color:#88bbff">Jugador 2 🔵</strong></div>
-      <div class="seed-row">
-        <input type="text" id="joinCodeInput" placeholder="Pega aquí el ID del host" maxlength="36" style="font-size:13px;letter-spacing:1px;text-align:center;font-family:monospace"/>
+      <div class="screen-header">
+        <button class="back-btn" onclick="showScreen('screenMenu')">←</button>
+        <div class="screen-header-text">
+          <div class="overlay-title">Unirse</div>
+          <div class="overlay-subtitle">Tú eres <strong style="color:#88bbff">Jugador 2 🔵</strong></div>
+        </div>
       </div>
-      <button class="btn btn-primary" onclick="joinGame()" id="btnJoin">🔌 Conectar</button>
-      <div id="joinStatus" style="margin-top:16px;min-height:60px;display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,0.7);font-size:13px"></div>
-      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu')">← Volver</button>
+
+      <div class="section-label">Código de sala</div>
+      <div style="margin-bottom:16px;">
+        <input type="text" id="joinCodeInput" placeholder="Pega aquí el ID del host"
+          maxlength="36"
+          style="width:100%;background:rgba(255,255,255,0.07);border:1.5px solid rgba(80,150,255,0.35);
+                 border-radius:12px;color:#88bbff;font-size:13px;padding:14px;outline:none;
+                 font-family:monospace;letter-spacing:1px;text-align:center;box-sizing:border-box;"/>
+      </div>
+
+      <button class="btn btn-primary" onclick="joinGame()" id="btnJoin"
+        style="background:linear-gradient(135deg,#4a7fff,#1a3dcc);box-shadow:0 4px 20px rgba(74,127,255,0.35);">
+        🔌 Conectar
+      </button>
+      <div id="joinStatus" style="margin-top:14px;min-height:50px;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,0.6);font-size:13px"></div>
     </div>
 
   </div>
@@ -1759,7 +1981,34 @@ function hostGame() {
   // Destruir peer anterior si existe
   if (peer) { try { peer.destroy(); } catch(e){} }
 
-  peer = new Peer(undefined, { debug: 0 });
+  const peerConfig = {
+    debug: 0,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ],
+      iceCandidatePoolSize: 10
+    }
+  };
+
+  peer = new Peer(undefined, peerConfig);
 
   peer.on('open', (id) => {
     isHost = true;
@@ -1817,7 +2066,35 @@ function joinGame() {
   status.innerHTML = 'Iniciando peer…';
 
   if (peer) { try { peer.destroy(); } catch(e){} }
-  peer = new Peer(undefined, { debug: 0 });
+
+  const peerConfig2 = {
+    debug: 0,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ],
+      iceCandidatePoolSize: 10
+    }
+  };
+
+  peer = new Peer(undefined, peerConfig2);
 
   peer.on('open', (myId) => {
     myPid = 1;
@@ -1903,9 +2180,9 @@ function startLocalGame(demo = false) {
 // ─── MENU HELPERS ─────────────────────────────────────
 function setPlayerCount(n) {
   numPlayers = n;
-  document.querySelectorAll('.player-count-btn').forEach(b => b.style.background = '');
+  document.querySelectorAll('.pc-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById(`pcBtn${n}`);
-  if (btn) btn.style.background = 'rgba(126,255,71,0.25)';
+  if (btn) btn.classList.add('active');
   renderPlayerNameInputs();
 }
 
@@ -1917,12 +2194,10 @@ function renderPlayerNameInputs() {
   c.innerHTML = '';
   for (let i = 0; i < numPlayers; i++) {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
-    row.innerHTML = `<span style="font-size:18px;width:24px;text-align:center">${emojis[i]}</span>
+    row.className = 'name-input-row';
+    row.innerHTML = `<span class="ni-emoji">${emojis[i]}</span>
       <input id="nameInput${i}" type="text" maxlength="16" placeholder="${defaults[i]}"
-        value="${playerNames[i]||defaults[i]}"
-        style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(126,255,71,0.3);
-               border-radius:10px;color:#fff;font-size:14px;padding:8px 12px;outline:none;font-family:inherit;" />`;
+        value="${playerNames[i]||defaults[i]}" />`;
     c.appendChild(row);
   }
 }
