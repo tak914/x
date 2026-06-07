@@ -1279,14 +1279,15 @@ function drawFrame() {
     ctx.textAlign = 'center';
     ctx.fillText('🏠 Interior del Molino — ¡Eres muy pequeño!', W/2, H - 26);
 
-    // Esperar jugadores
-    if (windmillState && windmillState.waitingForPlayers) {
+    // Indicador de espera si algunos jugadores ya entraron al molino
+    if (windmillState && windmillState.playersInside.size > 0 && windmillState.playersInside.size < numPlayers) {
       const inside = windmillState.playersInside.size;
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(W/2 - 140, H/2 - 30, 280, 60);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText(`⏳ Esperando jugadores... ${inside}/${numPlayers}`, W/2, H/2 + 6);
+      ctx.fillRect(W/2 - 160, H - 90, 320, 44);
+      ctx.fillStyle = '#ffcc80';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🏠 ${inside}/${numPlayers} dentro del molino — esperando...`, W/2, H - 62);
     }
 
   } else {
@@ -1611,46 +1612,40 @@ function loadHole(num) {
 }
 
 function enterWindmill(ball) {
-  // Marcar que este jugador entró al molino
   if (!windmillState) {
     windmillState = {
-      outerHoleData: holeData,    // guardar el mapa exterior
-      outerBalls: state.balls.map(b => ({...b})), // posiciones externas guardadas
+      outerHoleData: holeData,
       outerShots: [...state.shots],
       outerPlayer: state.currentPlayer,
       playersInside: new Set(),
-      waitingForPlayers: numPlayers > 1,
     };
   }
+
   windmillState.playersInside.add(ball.pid);
   ball.insideWindmill = true;
-  showMessage(`🏠 ${playerNames[ball.pid] || 'J'+(ball.pid+1)} entró al molino!`, 2000);
+  ball.vx = 0; ball.vy = 0;
+
+  const pc = PLAYER_COLORS[ball.pid % PLAYER_COLORS.length];
+  showMessage(`🏠 ${pc.emoji} ${playerNames[ball.pid] || 'J'+(ball.pid+1)} entró al molino!`, 2000);
 
   const allInside = windmillState.playersInside.size >= numPlayers;
   if (allInside) {
-    loadWindmillInterior();
+    setTimeout(() => loadWindmillInterior(), 1500);
   } else {
-    // Esperar al resto — congelar la bola en la puerta
-    ball.vx = 0; ball.vy = 0;
-    ball.x = holeData.windmill.doorX;
-    ball.y = holeData.windmill.doorY;
-    windmillState.waitingForPlayers = true;
+    // Turno pasa al siguiente jugador que aún NO entró
     nextTurn();
   }
 }
 
 function loadWindmillInterior() {
-  windmillState.waitingForPlayers = false;
   const interiorSeed = inputSeed + state.holeNum * 7919;
   holeData = generateWindmillInterior(interiorSeed);
 
-  // Resetear shots solo para este sub-nivel
   state.shots = Array(numPlayers).fill(0);
   state.animating = false;
   state.aiming = false;
   state.currentPlayer = 0;
 
-  // Colocar bolas en la entrada del interior
   const offsets = [{x:-8,y:0},{x:8,y:0},{x:0,y:-8},{x:0,y:8}];
   state.balls = [];
   for (let i = 0; i < numPlayers; i++) {
@@ -1658,12 +1653,11 @@ function loadWindmillInterior() {
     state.balls.push(createBall(holeData.startWorld.x + off.x, holeData.startWorld.y + off.y, i));
   }
 
-  // Centrar cámara en el mapa interior (más pequeño)
   offsetX = W/2 - holeData.startWorld.x;
   offsetY = H/2 - holeData.startWorld.y - 30;
 
   updateHUD();
-  showMessage('⚙️ ¡Estás dentro del molino! Llega a la bandera.', 3000);
+  showMessage('⚙️ ¡Todos adentro! Llega a la bandera.', 3000);
 }
 
 function shoot(pid, force, angle) {
@@ -1960,10 +1954,12 @@ function iniciarPartidaReal() {
 }
 
 function nextTurn() {
-  // Avanzar al siguiente jugador que aún no metió la bola
+  // Saltar jugadores que ya metieron la bola O que ya entraron al molino
   let next = (state.currentPlayer + 1) % numPlayers;
   let tries = 0;
-  while (state.balls[next] && state.balls[next].holed && tries < numPlayers) {
+  while (tries < numPlayers) {
+    const b = state.balls[next];
+    if (!b || (!b.holed && !b.insideWindmill)) break;
     next = (next + 1) % numPlayers;
     tries++;
   }
