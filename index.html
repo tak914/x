@@ -1644,6 +1644,9 @@ function gameLoop(ts) {
         } else {
           nextTurn();
         }
+
+        // Procesar comandos de red que llegaron mientras se animaba
+        flushColaComandos();
       }
     }
 
@@ -1774,6 +1777,20 @@ function enviarAlPeer(cmd) {
   }
 }
 
+// ─── COLA DE COMANDOS DE RED ─────────────────────────
+// Evita que un golpe del peer se procese mientras la animación
+// del turno anterior aún no terminó (bug crossplay PC lento / Android).
+const colaComandosRed = [];
+
+function flushColaComandos() {
+  while (colaComandosRed.length > 0 && state && !state.animating) {
+    const cmd = colaComandosRed.shift();
+    procesarComandoRed(cmd);
+    // Si procesarComandoRed arrancó una animación, esperamos al próximo flush
+    if (state && state.animating) break;
+  }
+}
+
 // ─── RECEPCIÓN DE MENSAJES DE RED ────────────────────
 function onMensajeRecibido(cmd) {
   netDebugSet('📥 ' + cmd);
@@ -1782,7 +1799,9 @@ function onMensajeRecibido(cmd) {
   if (parts[0] === 'GOLPE') {
     const pid = parseInt(parts[1]);
     if (pid !== myPid) {
-      procesarComandoRed(cmd);
+      // Encolar en lugar de ejecutar directo: se procesará cuando
+      // state.animating sea false, evitando el bug de turno salteado.
+      colaComandosRed.push(cmd);
     }
   } else if (parts[0] === 'START') {
     // Guest recibe seed del host y arranca
