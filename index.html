@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Golf Procedural Multijugador</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -326,8 +328,33 @@
         <input type="text" id="joinCodeInput" placeholder="Pega aquí el ID del host" maxlength="36" style="font-size:13px;letter-spacing:1px;text-align:center;font-family:monospace"/>
       </div>
       <button class="btn btn-primary" onclick="joinGame()" id="btnJoin">🔌 Conectar</button>
+      <button class="btn btn-secondary" style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="startQrScan()" id="btnScan">📷 Escanear QR</button>
+      <!-- Visor de cámara para QR -->
+      <div id="qrScanArea" style="display:none;margin-top:12px;flex-direction:column;align-items:center;gap:8px">
+        <div style="position:relative;width:220px;height:220px;border-radius:12px;overflow:hidden;border:2px solid rgba(126,255,71,0.5);background:#000">
+          <video id="qrVideo" style="width:100%;height:100%;object-fit:cover" playsinline autoplay muted></video>
+          <canvas id="qrCanvas" style="display:none"></canvas>
+          <!-- Marco de escaneo -->
+          <div style="position:absolute;inset:0;pointer-events:none">
+            <div style="position:absolute;top:12px;left:12px;width:32px;height:32px;border-top:3px solid #7eff47;border-left:3px solid #7eff47;border-radius:4px 0 0 0"></div>
+            <div style="position:absolute;top:12px;right:12px;width:32px;height:32px;border-top:3px solid #7eff47;border-right:3px solid #7eff47;border-radius:0 4px 0 0"></div>
+            <div style="position:absolute;bottom:12px;left:12px;width:32px;height:32px;border-bottom:3px solid #7eff47;border-left:3px solid #7eff47;border-radius:0 0 0 4px"></div>
+            <div style="position:absolute;bottom:12px;right:12px;width:32px;height:32px;border-bottom:3px solid #7eff47;border-right:3px solid #7eff47;border-radius:0 0 4px 0"></div>
+            <div id="scanLine" style="position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,#7eff47,transparent);animation:scanAnim 1.8s ease-in-out infinite"></div>
+          </div>
+        </div>
+        <div id="scanMsg" style="font-size:12px;color:rgba(255,255,255,0.6)">Apuntá la cámara al QR del host</div>
+        <button class="btn btn-secondary" style="padding:6px 18px;font-size:12px" onclick="stopQrScan()">✖ Cancelar</button>
+      </div>
+      <style>
+        @keyframes scanAnim {
+          0%   { top: 12px; opacity: 1; }
+          50%  { top: calc(100% - 14px); opacity: 1; }
+          100% { top: 12px; opacity: 1; }
+        }
+      </style>
       <div id="joinStatus" style="margin-top:16px;min-height:60px;display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,0.7);font-size:13px"></div>
-      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu')">← Volver</button>
+      <button class="btn btn-secondary" style="margin-top:8px" onclick="showScreen('screenMenu');stopQrScan()">← Volver</button>
     </div>
 
   </div>
@@ -923,15 +950,11 @@ function drawTile(ctx, r, c, type) {
       const even = (r + c) % 2 === 0;
       ctx.fillStyle = even ? '#1b5e20' : '#154a19';
       ctx.fillRect(sx, sy, TILE, TILE);
-      // Textura de pasto largo (líneas verticales tenues)
-      ctx.strokeStyle = 'rgba(0,0,0,0.18)';
-      ctx.lineWidth = 1;
+      // Textura de pasto: usar fillRect en lugar de stroke (mucho más rápido en PC)
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
       for (let g = 0; g < 5; g++) {
         const gx = sx + ((c * 7 + g * 8) % TILE);
-        ctx.beginPath();
-        ctx.moveTo(gx, sy);
-        ctx.lineTo(gx + 1, sy + TILE);
-        ctx.stroke();
+        ctx.fillRect(gx, sy, 1, TILE);
       }
       // Borde sutil donde toca el fairway
       ctx.fillStyle = 'rgba(0,0,0,0.12)';
@@ -1698,6 +1721,9 @@ function enterWindmill(ball) {
   ball.insideWindmill = true;
   ball.vx = 0; ball.vy = 0;
 
+  // Notificar al peer que este jugador entró al molino
+  enviarAlPeer(`WINDMILL_ENTER|${ball.pid}`);
+
   const pc = PLAYER_COLORS[ball.pid % PLAYER_COLORS.length];
   showMessage(`🏠 ${pc.emoji} ${playerNames[ball.pid] || 'J'+(ball.pid+1)} entró al molino!`, 2000);
 
@@ -1768,6 +1794,28 @@ function onMensajeRecibido(cmd) {
     if (state && state.holeNum !== num) {
       state.holeNum = num;
       loadHole(num);
+    }
+  } else if (parts[0] === 'WINDMILL_ENTER') {
+    // El peer entro al molino
+    const pid = parseInt(parts[1]);
+    if (!windmillState) {
+      windmillState = {
+        outerHoleData: holeData,
+        outerShots: [...state.shots],
+        outerPlayer: state.currentPlayer,
+        playersInside: new Set(),
+      };
+    }
+    windmillState.playersInside.add(pid);
+    if (state.balls[pid]) {
+      state.balls[pid].insideWindmill = true;
+      state.balls[pid].holed = false;
+    }
+    const pc = PLAYER_COLORS[pid % PLAYER_COLORS.length];
+    showMessage('\uD83C\uDFE0 ' + pc.emoji + ' ' + (playerNames[pid] || 'J'+(pid+1)) + ' entro al molino!', 2000);
+    const allInside = windmillState.playersInside.size >= numPlayers;
+    if (allInside) {
+      setTimeout(() => loadWindmillInterior(), 1500);
     }
   }
 }
@@ -1852,14 +1900,30 @@ function hostGame() {
     myPid = 0;
     btn.textContent = '✅ Sala creada — esperando J2…';
 
+    // Build join URL for QR
+    const joinUrl = location.href.split('?')[0] + '?join=' + encodeURIComponent(id);
     status.innerHTML = `
-      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px">Comparte este ID con el J2:</div>
-      <div id="hostIdDisplay" style="font-size:12px;font-weight:700;letter-spacing:1px;color:#7eff47;word-break:break-all;
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px">Comparte este ID o escanea el QR:</div>
+      <div id="hostIdDisplay" style="font-size:11px;font-weight:700;letter-spacing:1px;color:#7eff47;word-break:break-all;
                   background:rgba(126,255,71,0.1);border:2px solid rgba(126,255,71,0.4);
-                  border-radius:12px;padding:10px 16px;font-family:monospace;cursor:pointer"
+                  border-radius:12px;padding:8px 12px;font-family:monospace;cursor:pointer"
            onclick="copyHostId('${id}')" title="Clic para copiar">${id}</div>
       <button class="btn btn-secondary" style="padding:6px 18px;font-size:12px;margin-top:0" onclick="copyHostId('${id}')">📋 Copiar ID</button>
+      <div id="qrContainer" style="margin:10px auto;background:#fff;border-radius:12px;padding:10px;display:inline-block;box-shadow:0 0 20px rgba(126,255,71,0.3)"></div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">Escanear abre el juego en J2</div>
       <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">⏳ Esperando conexión…</div>`;
+    // Generate QR after DOM update
+    setTimeout(() => {
+      const qrEl = document.getElementById('qrContainer');
+      if (qrEl && typeof QRCode !== 'undefined') {
+        new QRCode(qrEl, {
+          text: joinUrl,
+          width: 160, height: 160,
+          colorDark: '#000000', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 50);
     netDebugSet('📡 Esperando J2… ID: ' + id);
   });
 
@@ -2385,12 +2449,129 @@ function randomSeed() {
   if (el) el.value = Math.floor(Math.random() * 999999);
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  QR SCAN (cámara)
+// ═══════════════════════════════════════════════════════
+let qrScanStream = null;
+let qrScanTimer = null;
+
+async function startQrScan() {
+  const area = document.getElementById('qrScanArea');
+  const video = document.getElementById('qrVideo');
+  const msg = document.getElementById('scanMsg');
+  area.style.display = 'flex';
+  document.getElementById('btnScan').style.display = 'none';
+
+  try {
+    qrScanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+    });
+    video.srcObject = qrScanStream;
+    await video.play();
+    msg.textContent = 'Apuntá la cámara al QR del host';
+    qrScanLoop();
+  } catch(err) {
+    msg.textContent = '❌ No se pudo acceder a la cámara: ' + err.message;
+  }
+}
+
+function qrScanLoop() {
+  const video = document.getElementById('qrVideo');
+  const canvas = document.getElementById('qrCanvas');
+
+  function tick() {
+    if (!qrScanStream) return;
+    if (video.readyState < video.HAVE_ENOUGH_DATA) {
+      qrScanTimer = requestAnimationFrame(tick);
+      return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx2 = canvas.getContext('2d');
+    ctx2.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
+
+    let result = null;
+
+    // Intentar BarcodeDetector nativo primero (Android Chrome)
+    if (window._barcodeDetector) {
+      window._barcodeDetector.detect(video).then(codes => {
+        if (codes.length > 0) onQrDetected(codes[0].rawValue);
+        else qrScanTimer = requestAnimationFrame(tick);
+      }).catch(() => { qrScanTimer = requestAnimationFrame(tick); });
+      return;
+    }
+
+    // Fallback: jsQR
+    if (typeof jsQR !== 'undefined') {
+      result = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+    }
+
+    if (result) {
+      onQrDetected(result.data);
+    } else {
+      qrScanTimer = requestAnimationFrame(tick);
+    }
+  }
+
+  // Inicializar BarcodeDetector si está disponible
+  if (typeof BarcodeDetector !== 'undefined') {
+    BarcodeDetector.getSupportedFormats().then(formats => {
+      if (formats.includes('qr_code')) {
+        window._barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      }
+    });
+  }
+
+  qrScanTimer = requestAnimationFrame(tick);
+}
+
+function onQrDetected(rawValue) {
+  stopQrScan();
+  // Extraer el ?join= param de la URL escaneada
+  let joinId = rawValue;
+  try {
+    const u = new URL(rawValue);
+    const p = u.searchParams.get('join');
+    if (p) joinId = p;
+  } catch(e) { /* no era URL, usar directo */ }
+
+  const input = document.getElementById('joinCodeInput');
+  if (input) input.value = joinId.trim();
+  document.getElementById('scanMsg') && (document.getElementById('scanMsg').textContent = '✅ QR detectado!');
+  // Conectar automáticamente
+  setTimeout(() => joinGame(), 400);
+}
+
+function stopQrScan() {
+  if (qrScanTimer) { cancelAnimationFrame(qrScanTimer); qrScanTimer = null; }
+  if (qrScanStream) {
+    qrScanStream.getTracks().forEach(t => t.stop());
+    qrScanStream = null;
+  }
+  const area = document.getElementById('qrScanArea');
+  if (area) area.style.display = 'none';
+  const btn = document.getElementById('btnScan');
+  if (btn) btn.style.display = '';
+}
+
 // Semilla por defecto al cargar
 window.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('seedInput');
   if (el) el.value = Math.floor(Math.random() * 999999);
   // Inicializar menú de jugadores
   setPlayerCount(2);
+  // Auto-join si la URL tiene ?join=<id>
+  const urlParams = new URLSearchParams(location.search);
+  const autoJoinId = urlParams.get('join');
+  if (autoJoinId) {
+    const joinInput = document.getElementById('joinCodeInput');
+    if (joinInput) joinInput.value = autoJoinId.trim();
+    showScreen('screenJoin');
+    // Small delay so PeerJS loads
+    setTimeout(() => joinGame(), 600);
+  }
 });
 </script>
 </body>
